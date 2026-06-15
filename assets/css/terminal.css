@@ -1,0 +1,16 @@
+/* ============================================================
+   terminal.css — CRT scan lines, phosphor glow, vignette
+   ============================================================ */
+
+/* ── Phosphor glow on headings ── */
+.hero-name,
+.section-label,
+.proj-title,
+.timeline-text strong {
+  text-shadow: 0 0 8px rgba(212, 168, 83, 0.15);
+}
+
+/* ── Accent glow for the cursor ── */
+.cursor {
+  box-shadow: 0 0 6px var(--accent);
+}

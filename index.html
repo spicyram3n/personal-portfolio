@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poorna Sasank Sesetti | Robotics & Computer Vision</title>
+  <meta name="description" content="MSc Mobile Robotics student at the University of Bonn. I build perception, SLAM, and mobile-manipulation systems from first principles.">
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('ps-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#top" class="brand">poorna<span>/</span></a>
+      <div class="nav-links">
+        <a href="projects.html">projects</a>
+        <a href="#journey" class="hide-sm">journey</a>
+        <a href="blog/index.html" class="blog-link">blog</a>
+        <a href="#contact">contact</a>
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun"></i>
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap" id="top">
+
+    <!-- ── HERO ── -->
+    <header class="hero">
+      <div class="fade">
+        <div class="eyebrow">MSc Mobile Robotics · University of Bonn</div>
+        <h1>Poorna Sasank Sesetti</h1>
+        <p class="tagline mono">Robotics <span class="sep">/</span> Computer Vision </p>
+        <p class="intro">
+          I build <b>perception and state-estimation systems</b> from first principles:
+          SLAM, LiDAR perception, 3D reconstruction, and open-vocabulary mobile
+          manipulation. Right now I am a master's student turning ideas into
+          working robots, and writing down how I do it.
+        </p>
+
+        <div class="links-row">
+          <a href="mailto:poornasasanksesetti@gmail.com" class="link-chip"><i class="fa-solid fa-envelope"></i> email</a>
+          <a href="https://github.com/Poorna-Sasank" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-github"></i> github</a>
+          <a href="https://www.linkedin.com/in/poornasasanksesetti/" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-linkedin"></i> linkedin</a>
+          <a href="blog/index.html" class="link-chip" style="color:var(--accent);border-color:var(--accent)"><i class="fa-solid fa-rss"></i> build log</a>
+        </div>
+      </div>
+
+      <div class="hero-photo fade fade-2">
+        <img src="assets/images/poorna_photo3.jpeg" alt="Poorna Sasank Sesetti">
+      </div>
+    </header>
+
+        <!-- ── CONTACT ── -->
+    <section id="contact" class="fade">
+      <div class="sec-head">
+        <span class="prompt">~$</span>
+        <h2>Get in touch</h2>
+      </div>
+      <div class="prose">
+        <p>
+          I'm always up for conversations about robotics, perception systems, or
+          collaborations, and currently open to working-student and robotics
+          engineering roles. The fastest way to reach me is
+          <a href="mailto:poorna.sesetti03@gmail.com">email</a>.
+        </p>
+      </div>
+      <div class="links-row" style="margin-top:1rem">
+        <a href="mailto:poorna.sesetti03@gmail.com" class="link-chip"><i class="fa-solid fa-envelope"></i> poorna.sesetti03@gmail.com</a>
+        <a href="https://github.com/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-github"></i> GitHub</a>
+        <a href="https://codeberg.org/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-solid fa-code-branch"></i> Codeberg</a>
+        <a href="https://www.linkedin.com/in/poorna-sasank-b967b7188/" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+        <a href="https://x.com/spicyram3n_" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-x-twitter"></i> X</a>
+      </div>
+    </section>
+
+    <!-- ── CURRENTLY ── -->
+    <section id="now" class="fade">
+      <div class="sec-head">
+        <span class="prompt">~$</span>
+        <h2>Currently</h2>
+      </div>
+      <div class="now-grid">
+        <div class="now-card">
+          <div class="label">Building</div>
+          <div class="title">Open-Vocabulary Mobile Manipulation</div>
+          <p>Language-conditioned grasping and navigation on the Toyota HSR. Scene graphs, Nav2 navigation, and a two-phase grasp pipeline. Lab project at Uni Bonn.</p>
+        </div>
+        <div class="now-card">
+          <div class="label">Studying</div>
+          <div class="title">MSc Mobile Robotics</div>
+          <p>Master's at the University of Bonn. Focus: SLAM, LiDAR perception, Computer Vision, and 3D reconstruction.</p>
+        </div>
+        <div class="now-card">
+          <div class="label">Writing</div>
+          <div class="title">casualSfM Build Log</div>
+          <p>A long-form series documenting an incremental Structure-from-Motion pipeline, demystifying the math with the code chapter by chapter.</p>
+        </div>
+        <div class="now-card">
+          <div class="label">master's project</div>
+          <div class="title">3D Building Model Reconstruction Pipeline</div>
+          <p>Merging airborne and mobile LiDAR scans of a 10 km Bonn corridor into one clean point cloud for 3D building reconstruction. Built a streaming PDAL pipeline so it processes at that scale without loading everything into memory.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1.4rem">
+        <div class="stack">
+          <span class="pill">C++17</span><span class="pill">Python</span><span class="pill">Rust</span>
+          <span class="pill">ROS 2</span><span class="pill">OpenCV</span><span class="pill">Eigen</span>
+          <span class="pill">PyTorch</span><span class="pill">Open3D</span><span class="pill">PDAL</span>
+          <span class="pill">MuJoCo</span><span class="pill">Gazebo</span><span class="pill">Docker</span>
+          <span class="pill">Linux</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROJECTS ── -->
+    <section id="projects" class="fade">
+      <div class="sec-head">
+        <span class="prompt">~$</span>
+        <h2>Projects</h2>
+        <a href="projects.html" class="more">ls -la →</a>
+      </div>
+
+      <div class="proj-grid">
+
+        <!-- OVMM -->
+        <div class="card">
+          <div class="card-media">
+            <div class="ph"><i class="fa-solid fa-hand-sparkles"></i></div>
+            <!-- drop-in: replace with assets/media/projects/hsr-ovmm.jpg (or .mp4 in a <video>) -->
+            <img src="assets/media/projects/hsr-ovmm.png" alt="Toyota HSR OVMM" onerror="this.remove()">
+          </div>
+          <div class="card-body">
+            <div class="card-meta">Robotics <span class="badge-live">Ongoing</span></div>
+            <div class="card-title">Open-Vocab Mobile Manipulation</div>
+            <div class="card-stack mono">ROS 2 · Mask3D · SAM 3 · Nav2 · AnyGrasp</div>
+            <p class="card-desc">Open-Vocabulary Mobile Manipulation on the Toyota HSR. Scene graph from iPad scans, Dockerised inference containers over HTTP, geometric → AnyGrasp pipeline.</p>
+            <div class="card-foot">work in progress · Lab Project</div>
+          </div>
+        </div>
+
+        <!-- MoRo geospatial -->
+        <div class="card">
+          <div class="card-media">
+            <div class="ph"><i class="fa-solid fa-layer-group"></i></div>
+            <img src="assets/media/projects/moro-lidar.png" alt="MoRo LiDAR pipeline" onerror="this.remove()">
+          </div>
+          <div class="card-body">
+            <div class="card-meta">3D · LiDAR <span class="badge-live">Ongoing</span></div>
+            <div class="card-title">Geospatial LiDAR Pipeline</div>
+            <div class="card-stack mono">PDAL · Open3D  · SMRF · Cloud Compare</div>
+            <p class="card-desc">Streaming point-cloud processing over a 10 km Bonn corridor (ALS + MMS), GPU tensor ops, ground filtering, and parallel tiled processing.</p>
+            <div class="card-foot">work in progress · Master's Project</div>
+          </div>
+        </div>
+
+        <!-- CasualSfM -->
+        <a href="https://github.com/spicyram3n/CasualSfM" target="_blank" rel="noopener" class="card">
+          <div class="card-media">
+            <div class="ph"><i class="fa-solid fa-cube"></i></div>
+            <img src="assets/media/projects/casualsfm.png" alt="casualSfM" onerror="this.remove()">
+          </div>
+          <div class="card-body">
+            <div class="card-meta">Vision</div>
+            <div class="card-title">casualSfM</div>
+            <div class="card-stack mono">Python · OpenCV · NumPy</div>
+            <p class="card-desc">Incremental Structure-from-Motion. SIFT matching, RANSAC essential matrix, triangulation, and bundle adjustment. Documented as a blog series.</p>
+            <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub · Personal Project</div>
+          </div>
+        </a>
+
+        <!-- EKF SLAM -->
+        <div class="card">
+          <div class="card-media">
+            <div class="ph"><i class="fa-solid fa-map-location-dot"></i></div>
+            <img src="assets/media/projects/ekf-slam.png" alt="EKF SLAM" onerror="this.remove()">
+          </div>
+          <div class="card-body">
+            <div class="card-meta">Robotics</div>
+            <div class="card-title">EKF SLAM (slam-factory) <span class="badge-live">Ongoing</span></div>
+            <div class="card-stack mono">Python · ROS 2 · NumPy</div>
+            <p class="card-desc">Filter-based SLAM framework with a clean Python core and a thin ROS 2 wrapper, 25-test suite, documented after Thrun's Probabilistic Robotics.</p>
+            <div class="card-foot">work in progress · Personal Project</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── JOURNEY ── -->
+    <section id="journey" class="fade">
+      <div class="sec-head">
+        <span class="prompt">~$</span>
+        <h2>Journey</h2>
+      </div>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date mono">Oct 2025 - present</div>
+          <div>
+            <div class="tl-role">MSc Mobile Robotics</div>
+            <div class="tl-org mono">University of Bonn, Germany</div>
+            <div class="tl-desc">Visual SLAM, LiDAR perception, 3D reconstruction, multi-object tracking. Lab work on open-vocabulary mobile manipulation with the Toyota HSR.</div>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date mono">Dec 2025</div>
+          <div>
+            <div class="tl-role">Won the Ideas Competition (Team Baggins)</div>
+            <div class="tl-org mono">enaCom Transfer Center, University of Bonn</div>
+            <div class="tl-desc">Pitched in the final at DIGITALHUB.DE and took a 1,000 euro prize, a few months after arriving in Germany. A five-minute pitch format that taught me to communicate an idea with real clarity and precision.</div>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date mono">Jun 2025</div>
+          <div>
+            <div class="tl-role">ROS 2 Developer</div>
+            <div class="tl-org mono">HILD Defence &amp; Aerospace</div>
+            <div class="tl-desc">Robotics software development on ROS 2. Perception and control for autonomous platforms.</div>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date mono">May 2025</div>
+          <div>
+            <div class="tl-role">IEEE RA-L Publication: <em>WireFlie</em></div>
+            <div class="tl-org mono">Robotics Research Center, IIIT Hyderabad</div>
+            <div class="tl-desc">Co-authored a Robotics and Automation Letters paper on a novel drone mechanism, as a research assistant.</div>
+          </div>
+        </div>
+
+        
+
+      </div>
+    </section>
+
+    <!-- ── BLOG ── -->
+    <section id="blog" class="fade">
+      <div class="sec-head">
+        <span class="prompt">~$</span>
+        <h2>From the Build Log</h2>
+        <a href="blog/index.html" class="more">all posts →</a>
+      </div>
+      <div class="blog-list">
+        <a href="blog/casual-sfm/ch4.html" class="blog-row">
+          <div>
+            <div class="blog-title">Ch 04: Evaluation &amp; Visualisation</div>
+            <div class="blog-sub">Reprojection error and inspecting the reconstruction with Rerun</div>
+          </div>
+          <span class="blog-date">Apr 2026</span>
+        </a>
+        <a href="blog/casual-sfm/ch3.html" class="blog-row">
+          <div>
+            <div class="blog-title">Ch 03: Pose Recovery &amp; Triangulation</div>
+            <div class="blog-sub">From the essential matrix to 3D points</div>
+          </div>
+          <span class="blog-date">Apr 2026</span>
+        </a>
+        <a href="blog/casual-sfm/ch2.html" class="blog-row">
+          <div>
+            <div class="blog-title">Ch 02: The Fundamental Matrix</div>
+            <div class="blog-sub">Normalised 8-point algorithm and RANSAC</div>
+          </div>
+          <span class="blog-date">Mar 2026</span>
+        </a>
+        <a href="blog/casual-sfm/ch1.html" class="blog-row">
+          <div>
+            <div class="blog-title">Ch 01: Feature Detection &amp; Matching</div>
+            <div class="blog-sub">SIFT, descriptors, and the ratio test</div>
+          </div>
+          <span class="blog-date">Feb 2026</span>
+        </a>
+      </div>
+    </section>
+
+
+  </main>
+
+  <footer class="footer">
+    © 2026 Poorna Sasank Sesetti · Bonn, Germany ·
+    <a href="https://github.com/spicyram3n" target="_blank" rel="noopener">Source</a>
+  </footer>
+
+  <script src="assets/js/theme.js"></script>
+</body>
+</html>

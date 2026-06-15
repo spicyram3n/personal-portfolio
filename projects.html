@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects | Poorna Sasank Sesetti</title>
+  <script>
+    (function () {
+      var t = localStorage.getItem('ps-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    .filter-bar { display: flex; gap: 6px; margin: 1.25rem 0 0.5rem; flex-wrap: wrap; }
+    .fpill {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      color: var(--text-dim); background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px 12px; cursor: pointer; transition: all 0.15s;
+    }
+    .fpill:hover { border-color: var(--border-mid); }
+    .fpill.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .count { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-dimmer); }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="brand">poorna<span>/</span></a>
+      <div class="nav-links">
+        <a href="projects.html" style="color:var(--accent)">projects</a>
+        <a href="index.html#journey" class="hide-sm">journey</a>
+        <a href="blog/index.html" class="blog-link">blog</a>
+        <a href="index.html#contact">contact</a>
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun"></i><i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <header style="padding:4rem 0 1rem" class="fade">
+      <div class="sec-head" style="margin-bottom:0.5rem">
+        <span class="prompt mono">ps@bonn ~/projects $</span>
+        <span class="mono" style="color:var(--text-dimmer);font-size:13px">ls -la</span>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',serif;font-weight:600;font-size:2rem;color:var(--text);margin-bottom:0.4rem">Projects</h1>
+      <p style="font-size:14.5px;color:var(--text-dim);max-width:52ch">
+        Robotics, vision, and perception. Mostly built from scratch in C++ and Python.
+      </p>
+      <div class="filter-bar">
+        <button class="fpill active" data-filter="all">all</button>
+        <button class="fpill" data-filter="robotics">robotics</button>
+        <button class="fpill" data-filter="vision">vision</button>
+        <button class="fpill" data-filter="ongoing">ongoing</button>
+      </div>
+      <span class="count" id="count"></span>
+    </header>
+
+    <div class="proj-grid fade fade-2" id="grid" style="padding-bottom:2rem">
+
+      <div class="card" data-tags="robotics ongoing">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-hand-sparkles"></i></div>
+          <img src="assets/media/projects/hsr-ovmm.png" alt="Toyota HSR OVMM" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Robotics · 2026 <span class="badge-live">Ongoing</span></div>
+          <div class="card-title">Open-Vocab Mobile Manipulation</div>
+          <div class="card-stack mono">ROS 2 · Mask3D · SAM 3 · Nav2 · AnyGrasp `</div>
+          <p class="card-desc">Language-conditioned grasping on the Toyota HSR. Scene graph built from iPad scan data, Dockerised inference containers communicating over HTTP, and a two-phase geometric → AnyGrasp pipeline. Pure-Python core with ROS 2 as a thin adapter.</p>
+          <div class="card-foot">work in progress · lab project</div>
+        </div>
+      </div>
+
+      <div class="card" data-tags="vision ongoing">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-layer-group"></i></div>
+          <img src="assets/media/projects/moro-lidar.png" alt="MoRo LiDAR pipeline" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">3D · LiDAR · 2026 <span class="badge-live">Ongoing</span></div>
+          <div class="card-title">Geospatial LiDAR Pipeline</div>
+          <div class="card-stack mono">PDAL · Open3D · Patchwork++ · CSF</div>
+          <p class="card-desc">Streaming point-cloud processing across a 10 km Bonn corridor (ALS + MMS, EPSG:25832). GPU tensor ops via Open3D, ground filtering, quasigeoid correction, and parallel tiled processing for heterogeneous hardware.</p>
+          <div class="card-foot">work in progress</div>
+        </div>
+      </div>
+
+      <a href="https://github.com/Poorna-Sasank/CasualSfM" target="_blank" rel="noopener" class="card" data-tags="vision">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-cube"></i></div>
+          <img src="assets/media/projects/casualsfm.png" alt="casualSfM" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Vision · 2025</div>
+          <div class="card-title">casualSfM</div>
+          <div class="card-stack mono">Python · OpenCV · NumPy</div>
+          <p class="card-desc">Incremental Structure-from-Motion for unordered photo sets. SIFT extraction, ratio-test matching, RANSAC essential matrix, pose recovery, triangulation, and bundle adjustment. Documented as a math-paired blog series.</p>
+          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+        </div>
+      </a>
+
+      <div class="card" data-tags="robotics ongoing">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-map-location-dot"></i></div>
+          <img src="assets/media/projects/ekf-slam.png" alt="EKF SLAM" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Robotics · 2026</div>
+          <div class="card-title">EKF SLAM (slam-factory)</div>
+          <div class="card-stack mono">Python · ROS 2 · NumPy</div>
+          <p class="card-desc">Filter-based SLAM framework with abstract base classes, a clean Python core, and a thin ROS 2 wrapper. 25-test suite covering prediction, update, and data association. Documented after Thrun et al., Probabilistic Robotics.</p>
+          <div class="card-foot">work in progress</div>
+        </div>
+      </div>
+
+      <a href="https://github.com/Poorna-Sasank/BallBot.git" target="_blank" rel="noopener" class="card" data-tags="robotics">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-robot"></i></div>
+          <img src="assets/media/projects/ballbot.jpg" alt="" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Robotics · 2024</div>
+          <div class="card-title">BallBot</div>
+          <div class="card-stack mono">ROS 2 · Gazebo · OpenCV · Python</div>
+          <p class="card-desc">Autonomous mobile robot that detects and chases a coloured ball using real-time HSV segmentation and a PID velocity controller published to ROS 2 topics, simulated in Gazebo.</p>
+          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/Poorna-Sasank/mujoco_ik_simulation" target="_blank" rel="noopener" class="card" data-tags="robotics">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-arrow-up-right-dots"></i></div>
+          <img src="assets/media/projects/ur5e-ik.jpg" alt="" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Robotics · 2024</div>
+          <div class="card-title">UR5e IK Control in MuJoCo</div>
+          <div class="card-stack mono">MuJoCo · Python · SciPy</div>
+          <p class="card-desc">Modular inverse-kinematics framework benchmarking gradient descent, SLSQP, and damped least-squares solvers across reachable and near-singular configurations.</p>
+          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/Poorna-Sasank/turtlebot3-internet-control.git" target="_blank" rel="noopener" class="card" data-tags="robotics">
+        <div class="card-media"><div class="ph"><i class="fa-solid fa-wifi"></i></div>
+          <img src="assets/media/projects/turtlebot3-remote.jpg" alt="" onerror="this.remove()"></div>
+        <div class="card-body">
+          <div class="card-meta">Robotics · 2024</div>
+          <div class="card-title">MQTT Remote Control of TurtleBot3</div>
+          <div class="card-stack mono">ROS 2 · Gazebo · MQTT</div>
+          <p class="card-desc">Internet-based teleoperation of TurtleBot3 using an MQTT broker bridged into ROS 2 publisher/subscriber nodes, with sub-80 ms observed latency over the public internet.</p>
+          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+        </div>
+      </a>
+
+    </div>
+
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dimmer);padding-bottom:1.5rem">
+      More unfolding. <a href="blog/index.html" style="color:var(--accent)">follow the build log →</a>
+    </p>
+  </main>
+
+  <footer class="footer">
+    © 2026 Poorna Sasank Sesetti · Bonn, Germany ·
+    <a href="https://github.com/Poorna-Sasank" target="_blank" rel="noopener">source</a>
+  </footer>
+
+  <script src="assets/js/theme.js"></script>
+  <script>
+    var pills = document.querySelectorAll('.fpill');
+    var cards = document.querySelectorAll('#grid .card');
+    var count = document.getElementById('count');
+    function apply(f) {
+      var n = 0;
+      cards.forEach(function (c) {
+        var show = f === 'all' || (c.dataset.tags || '').indexOf(f) !== -1;
+        c.style.display = show ? '' : 'none';
+        if (show) n++;
+      });
+      count.textContent = n + (n === 1 ? ' project' : ' projects');
+    }
+    pills.forEach(function (p) {
+      p.addEventListener('click', function () {
+        pills.forEach(function (x) { x.classList.remove('active'); });
+        p.classList.add('active');
+        apply(p.dataset.filter);
+      });
+    });
+    apply('all');
+  </script>
+</body>
+</html>

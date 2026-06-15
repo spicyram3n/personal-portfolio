@@ -1,0 +1,200 @@
+/* ============================================================
+   chapter.css — Shared styles for blog chapter pages
+   Extends base.css + components.css
+   ============================================================ */
+
+/* ── Math-code dual-pane panels ── */
+.math-code {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  background: var(--code-bg);
+}
+
+.math-code > div {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.math-code > div:first-child {
+  border-right: 1px solid var(--border);
+}
+
+/* Pane header — replaces the floating label */
+.math-code > div > p.label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  padding: 6px 14px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.028);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Override .prose pre inside math-code panes */
+.math-code > div > pre {
+  margin: 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.68 !important;
+  overflow-x: auto;
+  white-space: pre;
+  padding: 0.9rem 1rem !important;
+  border: none !important;
+  border-left: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  flex: 1;
+  color: var(--code-text);
+}
+
+@media (max-width: 680px) {
+  .math-code {
+    grid-template-columns: 1fr;
+  }
+  .math-code > div:first-child {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* ── Results stat grid (ch 04) ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  background: var(--border);
+}
+
+.result-card {
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+  text-align: center;
+}
+
+.result-card .val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.result-card .desc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .results-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Series-complete box (ch 04) ── */
+.series-complete {
+  margin-top: 3rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  border-left: 2px solid rgba(212, 168, 83, 0.3);
+}
+
+.series-complete-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  opacity: 0.65;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.series-complete p {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  font-weight: 300;
+  line-height: 1.72;
+  margin: 0;
+}
+
+/* ── Plot caption ── */
+.plot-caption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 0.5rem;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+/* ── Chapter breadcrumb ── */
+.breadcrumb {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.12s; }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb .sep { color: var(--border-mid); }
+.breadcrumb .current { color: var(--text-dimmer); }
+
+/* ── Sidebar series nav ── */
+.ch-series-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ch-series-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+
+.ch-series-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 0;
+  background: #3cc47c;
+  flex-shrink: 0;
+}
+
+.ch-series-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  transition: color 0.12s;
+}
+
+.ch-series-label--active {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.ch-series-item:hover .ch-series-label:not(.ch-series-label--active) {
+  color: var(--accent);
+}

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ch 02 – The Fundamental Matrix · casualSfM</title>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/animations.css">
+  <link rel="stylesheet" href="../../assets/css/terminal.css">
+  <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <style>
+    #progress-bar { top: 0; z-index: 200; }
+  </style>
+</head>
+<body class="font-sans">
+  <div id="progress-bar"></div>
+
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <div class="site-nav__left">
+        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun toggle-icon-sun"></i>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <i class="fa-solid fa-moon toggle-icon-moon"></i>
+        </button>
+      </div>
+      <nav class="site-nav__links">
+        <a href="../../index.html"    class="nav-link">Home</a>
+        <a href="../../projects.html"      class="nav-link">Projects</a>
+        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
+        <a href="../../index.html#contact" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+
+    <div class="mb-8 fade-up">
+      <div class="breadcrumb">
+        <a href="../index.html">Build Log</a><span class="sep">/</span>
+        <span>casualSfM</span><span class="sep">/</span>
+        <span class="current">Ch 02</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+        <span class="badge badge--warm">Series 01 · Ch 02</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">March 2026 · ~14 min read</span>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+        The Fundamental Matrix<br>Normalised 8-Point Algorithm &amp; RANSAC
+      </h1>
+      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+        Given ~1,500 noisy pixel matches, find the camera geometry. This chapter covers the epipolar
+        constraint, Hartley normalisation, SVD-based 8-point algorithm, and adaptive RANSAC, each
+        formula shown alongside the code that implements it. Source: <code>geometry.py</code>.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
+      <article class="prose" style="flex:1; min-width:0;">
+
+        <h2 id="epipolar">The Epipolar Constraint</h2>
+        <p>
+          A 3D point P visible in both images projects to p₁ in image 1 and p₂ in image 2.
+          Even though we don't know where P is in 3D, we know that p₂ must lie on a specific
+          line in image 2, the <strong>epipolar line</strong> of p₁. The Fundamental Matrix F
+          encodes this constraint for all possible points.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>For any true match (p₁, p₂):
+
+  p₂ᵀ F p₁ = 0
+
+where pᵢ = (xᵢ, yᵢ, 1)ᵀ  (homogeneous)
+
+F is 3×3, rank 2, 7 DOF
+(9 entries − 1 scale − 1 rank constraint)
+
+  F p₁   → epipolar line in image 2
+  Fᵀ p₂  → epipolar line in image 1</pre>
+          </div>
+          <div>
+            <p class="label">What this enables</p>
+            <pre>For an inlier match (p₁, p₂):
+  p₂ᵀ F p₁  ≈  0  (small residual)
+
+For an outlier (wrong match):
+  p₂ᵀ F p₁  ≫  0  (large residual)
+
+→ F is the inlier/outlier separator.
+  RANSAC uses this to clean up the
+  noisy match list from Ch 01.</pre>
+          </div>
+        </div>
+
+        <h2 id="eight-point">The 8-Point Algorithm</h2>
+        <p>
+          Expanding <code>p₂ᵀ F p₁ = 0</code> with p₁=(u,v,1) and p₂=(u',v',1) gives
+          a linear equation in the 9 entries of F. Stack N such equations into a matrix system.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math: one row of A per match</p>
+            <pre>aᵢ = [u'u, u'v, u', v'u, v'v, v', u, v, 1]
+
+A · vec(F) = 0,   A ∈ ℝᴺˣ⁹
+
+Solution: vec(F) = last row of Vᵀ
+where A = U Σ Vᵀ  (SVD)
+
+Enforce rank-2 on recovered F:
+  F = U diag(σ₁, σ₂, 0) Vᵀ
+  (set smallest singular value to 0)</pre>
+          </div>
+          <div>
+            <p class="label">Code: eight_point()</p>
+            <pre>A = np.column_stack([
+    pts2_n[:,0]*pts1_n[:,0],  # u'u
+    pts2_n[:,0]*pts1_n[:,1],  # u'v
+    pts2_n[:,0],               # u'
+    pts2_n[:,1]*pts1_n[:,0],  # v'u
+    pts2_n[:,1]*pts1_n[:,1],  # v'v
+    pts2_n[:,1],               # v'
+    pts1_n[:,0], pts1_n[:,1], # u, v
+    np.ones(len(pts1_n)),      # 1
+])
+_, _, Vt = np.linalg.svd(A)
+F = Vt[-1].reshape(3, 3)     # ← solution
+
+U, S, Vt = np.linalg.svd(F)
+S[2] = 0.0                   # ← rank-2
+F = U @ np.diag(S) @ Vt</pre>
+          </div>
+        </div>
+
+        <h2 id="normalisation">Hartley Normalisation: Why It's Non-Negotiable</h2>
+        <p>
+          Pixel coordinates on our 3024×2016 images reach values up to ~3000. The A matrix
+          contains products like u'u ≈ 9×10⁶. SVD on such a poorly conditioned matrix is
+          dominated by floating-point rounding, so the recovered F is meaningless.
+          Normalisation maps both point sets to zero mean, √2 average distance from origin.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>centroid:  c = (1/N) Σ pᵢ
+scale:     s = √2 / mean(‖pᵢ − c‖)
+
+Transform matrix:
+T = | s   0  −s·cₓ |
+    | 0   s  −s·cy |
+    | 0   0    1   |
+
+Normalised point:  p̃ = T p
+
+After computing F in normalised coords:
+  F_final = T₂ᵀ · F̃ · T₁</pre>
+          </div>
+          <div>
+            <p class="label">Code: normalize_points()</p>
+            <pre>centroid = pts.mean(axis=0)
+shifted  = pts - centroid
+scale    = np.sqrt(2) / np.mean(
+               np.linalg.norm(shifted, axis=1))
+
+T = np.array([
+    [scale, 0,    -scale*centroid[0]],
+    [0,     scale, -scale*centroid[1]],
+    [0,     0,      1               ],
+])
+
+pts_h    = np.hstack([pts, np.ones((len(pts),1))])
+pts_norm = (T @ pts_h.T).T
+
+# Denormalise after computing F:
+F = T2.T @ F @ T1
+return F / F[2, 2]   # fix scale (convention)</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--challenge">
+          <span class="callout-label">Challenge I hit</span>
+          Skipping normalisation gives mean reprojection error of ~18 px. With it: ~0.14 px
+          on the best RANSAC sample, ~0.50 px after refitting on all inliers.
+          Normalisation is not an optimisation. It is the difference between the algorithm
+          working and not working.
+        </div>
+
+        <h2 id="sed">Symmetric Epipolar Distance (SED)</h2>
+        <p>
+          To count inliers we need a geometric distance between a match and its epipolar line,
+          in pixel units. The algebraic residual p₂ᵀFp₁ is not geometric. Its scale is
+          arbitrary. SED sums the point-to-line distances in both images.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Epipolar line in image 2:  l₂ = F p₁
+Epipolar line in image 1:  l₁ = Fᵀ p₂
+
+Algebraic residual:  r = |p₂ᵀ F p₁|
+
+Point-to-line distance (pixels):
+  d₂ = r / ‖(Fp₁)ₓᵧ‖₂
+  d₁ = r / ‖(Fᵀp₂)ₓᵧ‖₂
+
+SED = d₁ + d₂   (symmetric, in px)
+
+Inlier criterion:  SED &lt; 1.5 px</pre>
+          </div>
+          <div>
+            <p class="label">Code: symmetric_epipolar_distance()</p>
+            <pre>p1h  = np.hstack([pts1, np.ones((len(pts1),1))])
+p2h  = np.hstack([pts2, np.ones((len(pts2),1))])
+Fp1  = (F   @ p1h.T).T   # lines in image 2
+Ftp2 = (F.T @ p2h.T).T   # lines in image 1
+
+# numerator: algebraic residual per match
+num    = np.abs((p2h * Fp1).sum(axis=1))
+
+# denominators: line direction norms (xy only)
+denom1 = np.sqrt(Fp1 [:,0]**2 + Fp1 [:,1]**2)
+denom2 = np.sqrt(Ftp2[:,0]**2 + Ftp2[:,1]**2)
+
+return num/denom1 + num/denom2  # px</pre>
+          </div>
+        </div>
+
+        <h2 id="ransac">RANSAC: Adaptive Iteration Count</h2>
+        <p>
+          Even after the ratio test, ~30–40% of matches are outliers. Feeding them all into
+          eight_point at once gives garbage. RANSAC draws minimal random samples (8 matches),
+          estimates F, counts inliers via SED, and keeps the best.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Let w = inlier fraction (estimated online).
+Probability that 8 random samples are
+all inliers: p_good = w⁸
+
+Required iterations for confidence p:
+  n = log(1−p) / log(1−w⁸)
+
+As RANSAC finds better F → w↑ → n↓
+→ terminate early.</pre>
+          </div>
+          <div>
+            <p class="label">Code: estimate_fundamental()</p>
+            <pre>w_est   = 0.5          # initial guess: 50% inliers
+n_iters = max(100, int(
+    np.log(1 - 0.999) / np.log(1 - w_est**8)))
+rng     = np.random.default_rng(0)  # reproducible
+
+for iteration in range(n_iters):
+    idx    = rng.choice(n, 8, replace=False)
+    F_cand = eight_point(pts1[idx], pts2[idx])
+    inlier = sed(F_cand, pts1, pts2) &lt; threshold
+    count  = inlier.sum()
+
+    if count > best_count:
+        best_count, best_mask, best_F = count, inlier, F_cand
+        w_est   = count / n
+        n_iters = min(n_iters,
+            int(np.log(1-0.999) /
+                np.log(1-max(w_est**8, 1e-10)))
+            + iteration)
+
+# Final refit on all inliers:
+if best_mask.sum() >= 8:
+    best_F = eight_point(pts1[best_mask], pts2[best_mask])</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--insight">
+          <span class="callout-label">Key insight</span>
+          The final <code>eight_point(pts1[best_mask], pts2[best_mask])</code> refit is crucial.
+          The best RANSAC sample used only 8 points. Refitting on all ~900 inliers gives a much
+          more stable F. This is what drives the final 0.50 px mean reprojection error.
+        </div>
+
+        <h2 id="pitfalls">Pitfalls</h2>
+        <p>
+          <strong>Normalise F after every eight_point call.</strong> The <code>F / F[2,2]</code>
+          convention fixes scale across iterations. Without it, the SED threshold is effectively
+          different each iteration, so inlier counts become incomparable.
+        </p>
+        <p>
+          <strong>Use a fixed random seed during development.</strong> <code>np.random.default_rng(0)</code>
+          makes RANSAC deterministic, which you need when debugging why inlier counts fluctuate.
+        </p>
+        <p>
+          <strong>SED only uses the xy components of epipolar line vectors.</strong> The third
+          component (the offset term) does not contribute to the geometric distance. Including
+          it in the norm is a subtle but consequential bug. Always index <code>[:, 0]</code>
+          and <code>[:, 1]</code> for the denominator.
+        </p>
+
+        <h2 id="next">What's Next</h2>
+        <p>
+          Ch 03 takes F and the inlier match sets, converts F to the Essential Matrix via the
+          intrinsic matrix K, decomposes it into (R, t), and triangulates the inlier matches
+          into a 3D point cloud.
+        </p>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+          <a href="ch1.html" class="chapter-nav-btn">
+            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
+            Ch 01: Feature Detection
+          </a>
+          <a href="ch3.html" class="chapter-nav-btn">
+            Ch 03: Pose Recovery &amp; Triangulation
+            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+          </a>
+        </div>
+
+      </article>
+
+      <!-- Sidebar TOC -->
+      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
+        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
+        <nav style="display:flex; flex-direction:column; gap:1px;">
+          <a href="#epipolar"       class="toc-link">Epipolar constraint</a>
+          <a href="#eight-point"    class="toc-link">8-point algorithm</a>
+          <a href="#normalisation"  class="toc-link">Hartley normalisation</a>
+          <a href="#sed"            class="toc-link">Epipolar distance</a>
+          <a href="#ransac"         class="toc-link">RANSAC</a>
+          <a href="#pitfalls"       class="toc-link">Pitfalls</a>
+          <a href="#next"           class="toc-link">What's next</a>
+        </nav>
+
+        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 02 · Fund. Matrix</span>
+            </div>
+            <a href="ch3.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 03 · Triangulation</span>
+            </a>
+            <a href="ch4.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 04 · Evaluation</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
+    </footer>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/scroll.js"></script>
+  <script>
+    (function () {
+      var links    = document.querySelectorAll('.toc-link');
+      var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
+      if (!links.length || !headings.length) return;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          if (link) link.classList.toggle('is-active', e.isIntersecting);
+        });
+      }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
+      headings.forEach(function (h) { obs.observe(h); });
+    })();
+  </script>
+</body>
+</html>

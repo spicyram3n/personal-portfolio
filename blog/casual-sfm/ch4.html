@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ch 04 – Evaluation &amp; Visualisation · casualSfM</title>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/animations.css">
+  <link rel="stylesheet" href="../../assets/css/terminal.css">
+  <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <style>
+    #progress-bar { top: 0; z-index: 200; }
+  </style>
+</head>
+<body class="font-sans">
+  <div id="progress-bar"></div>
+
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <div class="site-nav__left">
+        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun toggle-icon-sun"></i>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <i class="fa-solid fa-moon toggle-icon-moon"></i>
+        </button>
+      </div>
+      <nav class="site-nav__links">
+        <a href="../../index.html"    class="nav-link">Home</a>
+        <a href="../../projects.html"      class="nav-link">Projects</a>
+        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
+        <a href="../../index.html#contact" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+
+    <div class="mb-8 fade-up">
+      <div class="breadcrumb">
+        <a href="../index.html">Build Log</a><span class="sep">/</span>
+        <span>casualSfM</span><span class="sep">/</span>
+        <span class="current">Ch 04</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+        <span class="badge badge--warm">Series 01 · Ch 04</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">April 2026 · ~10 min read</span>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+        Evaluation &amp; Visualisation<br>Reprojection Error &amp; Rerun
+      </h1>
+      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+        The reconstruction is done. This chapter asks: how good is it? Reprojection error
+        is the primary metric. It measures how consistently the estimated geometry explains
+        the original image observations. Source: <code>evaluate.py</code>, <code>visualize.py</code>.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
+      <article class="prose" style="flex:1; min-width:0;">
+
+        <h2 id="results">Results at a Glance</h2>
+        <div class="results-grid">
+          <div class="result-card">
+            <div class="val">701</div>
+            <div class="desc">triangulated 3D points</div>
+          </div>
+          <div class="result-card">
+            <div class="val">0.50 px</div>
+            <div class="desc">mean reprojection error (cam 1)</div>
+          </div>
+          <div class="result-card">
+            <div class="val">0.53 px</div>
+            <div class="desc">mean reprojection error (cam 2)</div>
+          </div>
+          <div class="result-card">
+            <div class="val">0.47 px</div>
+            <div class="desc">median error (cam 1)</div>
+          </div>
+          <div class="result-card">
+            <div class="val">2.9</div>
+            <div class="desc">median depth (scene units)</div>
+          </div>
+          <div class="result-card">
+            <div class="val">2.2–4.7</div>
+            <div class="desc">depth range (scene units)</div>
+          </div>
+        </div>
+
+        <h2 id="reprojection-error">Reprojection Error</h2>
+        <p>
+          The standard metric for SfM accuracy. Each 3D point X was originally observed at
+          pixel p. We re-project X through the estimated camera and measure how far the
+          projection lands from p. If the geometry is correct, the projection should land
+          almost exactly on p.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>For each point Xᵢ and observation pᵢ:
+
+  p̂ᵢ = project(Xᵢ)   (via K, R, t)
+     = K (R Xᵢ + t) / (R Xᵢ + t)[2]
+
+Reprojection error:
+  eᵢ = ‖p̂ᵢ − pᵢ‖₂   (Euclidean, pixels)
+
+Summary statistics:
+  mean   = (1/N) Σ eᵢ
+  median = sorted eᵢ at 50th percentile
+  p95    = sorted eᵢ at 95th percentile</pre>
+          </div>
+          <div>
+            <p class="label">Code: evaluate()</p>
+            <pre>cam0, cam1 = reconstruction.cameras
+pts0, pts1 = reconstruction.pts2d
+
+# Re-project 3D points into each camera
+proj0 = cam0.project(reconstruction.points)
+proj1 = cam1.project(reconstruction.points)
+
+# Euclidean distance per point
+err0 = np.linalg.norm(proj0 - pts0, axis=1)
+err1 = np.linalg.norm(proj1 - pts1, axis=1)
+
+print(f"cam1  mean: {err0.mean():.2f} px")
+print(f"cam1  med:  {np.median(err0):.2f} px")
+print(f"cam1  p95:  {np.percentile(err0,95):.2f} px")</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--insight">
+          <span class="callout-label">What sub-pixel error means</span>
+          0.50 px mean error on a ~3000×2000 px image is excellent for a from-scratch
+          implementation. It means the estimated F, R, t, and 3D positions are
+          <em>internally self-consistent</em>, not that the 3D positions are metrically accurate
+          (scale is always unknown in monocular SfM).
+        </div>
+
+        <h2 id="backprojection-plot">Back-Projection Visualisation</h2>
+        <p>
+          The back-projection plot overlays each detected keypoint (circle) with its
+          re-projected location (cross), coloured by error magnitude. Purple → near-zero;
+          yellow → ~1 px or more.
+        </p>
+        <pre>def plot_backprojection(cam0, cam1, pts0, pts1, proj0, proj1, err0, err1, out_path):
+    fig, axes = plt.subplots(1, 2, figsize=(20, 9))
+    max_err   = max(np.percentile(err0, 95), np.percentile(err1, 95), 1.0)
+    cmap      = plt.cm.plasma
+
+    for ax, cam, pts, proj, err in zip(
+        axes, [cam0,cam1], [pts0,pts1], [proj0,proj1], [err0,err1]
+    ):
+        img = cv.cvtColor(cv.imread(cam.image_path), cv.COLOR_BGR2RGB)
+        ax.imshow(img)
+        c = cmap(np.clip(err / max_err, 0, 1))
+        ax.scatter(pts[:,0], pts[:,1],   s=8, facecolors='none',
+                   edgecolors=c, linewidths=0.6)       # detected (circles)
+        ax.scatter(proj[:,0], proj[:,1], s=6, marker='+',
+                   c=err, cmap='plasma', vmin=0, vmax=max_err)  # projected (crosses)
+
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(0, max_err))
+    fig.colorbar(sm, ax=axes).set_label('Reprojection error (px)')</pre>
+
+        <p>
+          The fountain's carved stone and brick wall produce dense, accurate matches across
+          the full image extent. Most points show purple, meaning sub-pixel error. The few yellow
+          points are mostly at the top-left sky region where texture is sparse.
+        </p>
+
+        <h2 id="error-histogram">Error Distribution: eval_errors.png</h2>
+        <p>
+          Histograms of per-point reprojection error for each camera. Both cameras show a
+          similar distribution: bulk of points below 0.6 px, long flat tail out to ~1.2 px.
+        </p>
+        <pre>def plot_error_histogram(err0, err1, out_path):
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
+    for ax, err, label, color in zip(
+        axes, [err0, err1], ['Camera 1', 'Camera 2'], ['#4C72B0', '#DD8452']
+    ):
+        bins = np.linspace(0, min(err.max(), 20), 60)
+        ax.hist(err, bins=bins, color=color, edgecolor='white', linewidth=0.3)
+        ax.axvline(err.mean(),      color='red',    linestyle='--',
+                   label=f'mean {err.mean():.2f}px')
+        ax.axvline(np.median(err),  color='orange', linestyle='--',
+                   label=f'median {np.median(err):.2f}px')</pre>
+
+        <div class="callout callout--note">
+          <span class="callout-label">Observed numbers</span>
+          Camera 1: mean 0.50 px, median 0.47 px.
+          Camera 2: mean 0.53 px, median 0.50 px.
+          The flat tail (points between 0.6 px and 1.2 px) comes from far-away wall texture
+          where the small baseline between the two shots gives poor triangulation geometry.
+        </div>
+
+        <h2 id="depth-histogram">Depth Distribution: eval_depth.png</h2>
+        <p>
+          Histogram of the z-coordinate of all 701 triangulated points, their distance from
+          camera 1 along the optical axis, in scene units.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>depth of point Xᵢ (in camera 1 frame):
+  z = Xᵢ[2]   (world = camera 1 frame)
+
+Expected structure for a fountain scene:
+  - Fountain body: foreground, smaller z
+  - Brick wall:    background, larger z
+  - Sky/frame:     clipped (far away)</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre>def plot_depth_histogram(pts3d, out_path):
+    depths = pts3d[:, 2]
+    p1, p99 = np.percentile(depths, [1, 99])
+    bins = np.linspace(max(0, p1), p99, 60)
+    ax.hist(depths, bins=bins, color='#55A868')
+    ax.axvline(np.median(depths), color='red',
+        label=f'median {np.median(depths):.1f}')
+
+# Observed:
+#   median depth: 2.9 scene units
+#   range: 2.2 (fountain) to 4.7 (wall)</pre>
+          </div>
+        </div>
+
+        <p>
+          The bimodal shape is clear in the plot: a sharp peak near 2.7–2.9 (the fountain
+          body) and a secondary cluster near 3.0–3.5 (the brickwork behind it). The long
+          right tail corresponds to the far brick wall.
+        </p>
+
+        <h2 id="visualise">3D Visualisation with Rerun</h2>
+        <p>
+          Rerun is an open-source time-series visualiser that handles 3D primitives natively.
+          <code>rr.Points3D</code> renders the point cloud; <code>rr.Transform3D</code> and
+          <code>rr.Pinhole</code> render the camera frustums.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">What gets logged</p>
+            <pre>world/points
+  → N coloured 3D points (the point cloud)
+
+world/camera/0
+  → Transform3D: R=I, t=0 (cam 1 at origin)
+  → Pinhole: K[0,0], K[1,1], K[0,2], K[1,2]
+
+world/camera/1
+  → Transform3D: R, t (recovered pose)
+  → Pinhole: same K (shared intrinsics)</pre>
+          </div>
+          <div>
+            <p class="label">Code: visualize()</p>
+            <pre>rr.init("sfm_pipeline", spawn=True)
+
+pts    = reconstruction.points
+colors = (reconstruction.colors*255).astype('uint8')
+rr.log("world/points",
+    rr.Points3D(positions=pts, colors=colors, radii=0.01))
+
+for i, cam in enumerate(reconstruction.cameras):
+    rr.log(f"world/camera/{i}", rr.Transform3D(
+        translation=cam.pose_matrix[:3, 3],
+        mat3x3=cam.pose_matrix[:3, :3],
+    ))
+    rr.log(f"world/camera/{i}/image", rr.Pinhole(
+        focal_length=[cam.K[0,0], cam.K[1,1]],
+        principal_point=[cam.K[0,2], cam.K[1,2]],
+        width=cam.width, height=cam.height,
+    ))</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout-label">Running the pipeline</span>
+          From the <code>src/</code> directory:<br><br>
+          <code>python main.py</code> uses the first two images in <code>data/images/</code><br>
+          <code>python main.py --no-viz</code> skips Rerun and only evaluates<br>
+          <code>python main.py --images a.jpg b.jpg</code> specifies custom images<br><br>
+          Evaluation plots are written to <code>eval_output/</code>.
+          Rerun spawns a viewer window automatically.
+        </div>
+
+        <h2 id="what-worked">What Worked, What Didn't</h2>
+        <p>
+          <strong>The RANSAC refit was the single biggest improvement.</strong> Without the
+          final <code>eight_point(inliers)</code> call, error was ~1.2 px. With it: 0.50 px.
+          Using 8 samples gives a valid F; using 900 inliers gives a <em>good</em> F.
+        </p>
+        <p>
+          <strong>Depth distribution has a gap.</strong> A visible trough between ~3.6 and 4.1
+          scene units reflects the architectural gap between the fountain wall and far background,
+          a real scene feature, not an artefact.
+        </p>
+        <p>
+          <strong>The p95 error is higher than the mean.</strong> Both cameras show p95 around
+          1.1–1.2 px despite a 0.50 px mean. A small number of far-away or weakly-textured
+          points reconstruct poorly, creating a heavy right tail.
+        </p>
+        <p>
+          <strong>Rerun has a learning curve for camera conventions.</strong> The <code>Transform3D</code>
+          API expects the camera-to-world transform, but our R, t describe world-to-camera.
+          Using <code>cam.pose_matrix</code> (camera pose in world coordinates) directly avoids
+          an inversion bug that took a while to track down.
+        </p>
+
+        <div class="series-complete">
+          <span class="series-complete-label">Series complete</span>
+          <p>
+            That's the full casualSfM pipeline: SIFT matching → RANSAC F estimation →
+            pose recovery → DLT triangulation → reprojection evaluation → Rerun visualisation.
+            701 coloured 3D points from two photographs, sub-pixel reprojection error,
+            built entirely from NumPy and OpenCV primitives.
+          </p>
+        </div>
+
+        <div style="display:flex; justify-content:flex-start; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+          <a href="ch3.html" class="chapter-nav-btn">
+            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
+            Ch 03: Pose Recovery &amp; Triangulation
+          </a>
+        </div>
+
+      </article>
+
+      <!-- Sidebar TOC -->
+      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
+        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
+        <nav style="display:flex; flex-direction:column; gap:1px;">
+          <a href="#results"              class="toc-link">Results</a>
+          <a href="#reprojection-error"   class="toc-link">Reprojection error</a>
+          <a href="#backprojection-plot"  class="toc-link">Back-projection</a>
+          <a href="#error-histogram"      class="toc-link">Error distribution</a>
+          <a href="#depth-histogram"      class="toc-link">Depth distribution</a>
+          <a href="#visualise"            class="toc-link">Rerun</a>
+          <a href="#what-worked"          class="toc-link">What worked</a>
+        </nav>
+
+        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <a href="ch2.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
+            </a>
+            <a href="ch3.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 03 · Triangulation</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 04 · Evaluation</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
+    </footer>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/scroll.js"></script>
+  <script>
+    (function () {
+      var links    = document.querySelectorAll('.toc-link');
+      var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
+      if (!links.length || !headings.length) return;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          if (link) link.classList.toggle('is-active', e.isIntersecting);
+        });
+      }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
+      headings.forEach(function (h) { obs.observe(h); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ch 03 – Pose Recovery &amp; Triangulation · casualSfM</title>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/animations.css">
+  <link rel="stylesheet" href="../../assets/css/terminal.css">
+  <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <style>
+    #progress-bar { top: 0; z-index: 200; }
+  </style>
+</head>
+<body class="font-sans">
+  <div id="progress-bar"></div>
+
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <div class="site-nav__left">
+        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun toggle-icon-sun"></i>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <i class="fa-solid fa-moon toggle-icon-moon"></i>
+        </button>
+      </div>
+      <nav class="site-nav__links">
+        <a href="../../index.html"    class="nav-link">Home</a>
+        <a href="../../projects.html"      class="nav-link">Projects</a>
+        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
+        <a href="../../index.html#contact" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+
+    <div class="mb-8 fade-up">
+      <div class="breadcrumb">
+        <a href="../index.html">Build Log</a><span class="sep">/</span>
+        <span>casualSfM</span><span class="sep">/</span>
+        <span class="current">Ch 03</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+        <span class="badge badge--warm">Series 01 · Ch 03</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">April 2026 · ~12 min read</span>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+        Pose Recovery &amp; Triangulation<br>Essential Matrix to 3D Points
+      </h1>
+      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+        F gives us epipolar geometry in pixels. Multiplying in the camera intrinsics K gives the
+        Essential Matrix E, the same geometry but in calibrated coordinates, from which we can recover
+        the actual rotation R and translation t and triangulate 3D points.
+        Source: <code>geometry.py</code>, <code>camera.py</code>, <code>pipeline.py</code>.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
+      <article class="prose" style="flex:1; min-width:0;">
+
+        <h2 id="essential">From F to the Essential Matrix</h2>
+        <p>
+          F relates pixel coordinates. E relates <strong>normalised image coordinates</strong>
+          (pixels divided by the focal length and shifted by the principal point), which removes the
+          camera's intrinsic parameters from the geometry. From E we can recover actual R and t.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Normalised coordinate:
+  x̃ = K⁻¹ · p   (p in homogeneous pixels)
+
+Epipolar constraint in calibrated coords:
+  x̃₂ᵀ E x̃₁ = 0
+
+Relationship between E and F:
+  E = Kᵀ F K
+
+E has the same 7 DOF as F, but its
+SVD has a special structure:
+  E = U diag(1, 1, 0) Vᵀ
+  (both non-zero singular values equal)</pre>
+          </div>
+          <div>
+            <p class="label">Code: recover_pose()</p>
+            <pre>def recover_pose(F, pts1, pts2, K):
+    E = K.T @ F @ K
+
+    # cv.recoverPose handles decomposition
+    # and cheirality check internally
+    _, R, t, mask = cv.recoverPose(
+        E, pts1, pts2, K
+    )
+
+    valid    = mask.ravel().astype(bool)
+    pts1_in  = pts1[valid]
+    pts2_in  = pts2[valid]</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--insight">
+          <span class="callout-label">Key insight</span>
+          K here is the <strong>camera intrinsic matrix</strong>, not arbitrary but calibrated
+          from a physical camera. For our fountain sequence:
+          <code>K = [[2759.48, 0, 1520.69], [0, 2764.16, 1006.81], [0, 0, 1]]</code>.
+          The large focal length (~2760 px) means a narrow field of view. If K is wrong,
+          every downstream result is wrong.
+        </div>
+
+        <h2 id="decompose">Decomposing E into (R, t)</h2>
+        <p>
+          The SVD of E yields four candidate (R, t) pairs, four camera positions that are all
+          geometrically consistent with the epipolar constraint. The correct one is selected by
+          the <strong>cheirality condition</strong>: the triangulated 3D points must lie in
+          front of both cameras.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math: four solutions from SVD(E)</p>
+            <pre>E = U Σ Vᵀ,  Σ = diag(σ, σ, 0)
+
+W = | 0 −1  0 |
+    | 1  0  0 |
+    | 0  0  1 |
+
+Four (R, t) candidates:
+  (U W  Vᵀ, +U[:,2])
+  (U W  Vᵀ, −U[:,2])
+  (U Wᵀ Vᵀ, +U[:,2])
+  (U Wᵀ Vᵀ, −U[:,2])
+
+Cheirality: for each candidate (R, t),
+  triangulate → keep the one where
+  X[:,2] > 0 in both camera frames.</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre># cv.recoverPose does SVD + cheirality:
+#   - Computes all 4 (R, t) candidates
+#   - Triangulates a subset of matches
+#   - Picks (R, t) where most points
+#     have positive depth in both cameras
+#   - Returns mask of positive-depth inliers
+
+_, R, t, mask = cv.recoverPose(E, pts1, pts2, K)
+
+# R: 3×3 rotation matrix (cam1→cam2)
+# t: 3×1 unit translation vector
+#    (direction only, scale unknown)
+# mask: 1 where cheirality passed</pre>
+          </div>
+        </div>
+
+        <h2 id="triangulation">Triangulation: DLT Method</h2>
+        <p>
+          With R and t we know both camera positions. For each inlier match (p₁, p₂) we compute
+          the 3D point X that best explains both observations using the
+          <strong>Direct Linear Transform</strong> (DLT).
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math: projection model</p>
+            <pre>Camera 1 at world origin:
+  P₁ = K [I | 0]
+
+Camera 2 at (R, t):
+  P₂ = K [R | t]
+
+For a 3D point X (homogeneous 4-vector):
+  λ₁ p₁ = P₁ X
+  λ₂ p₂ = P₂ X
+
+Cross-multiplying to eliminate λ:
+  p₁ × (P₁ X) = 0  →  two rows of A
+  p₂ × (P₂ X) = 0  →  two rows of A
+
+AX = 0  →  solved by SVD (X = last row Vᵀ)
+
+Convert homogeneous → Euclidean:
+  X_eucl = X_h[:3] / X_h[3]</pre>
+          </div>
+          <div>
+            <p class="label">Code: triangulation in recover_pose()</p>
+            <pre>P1 = K @ np.hstack([np.eye(3),
+                    np.zeros((3,1))])
+P2 = K @ np.hstack([R, t])
+
+# DLT triangulation (OpenCV)
+X_h = cv.triangulatePoints(
+    P1, P2,
+    pts1_in.T,   # shape (2, N)
+    pts2_in.T    # shape (2, N)
+)
+# X_h: 4×N homogeneous 3D points
+
+X = (X_h[:3] / X_h[3]).T
+# X: N×3 Euclidean 3D points</pre>
+          </div>
+        </div>
+
+        <h2 id="cheirality-filter">Cheirality Depth Filter</h2>
+        <p>
+          <code>cv.recoverPose</code> runs a cheirality check internally, but we apply one
+          more pass: keep only points with strictly positive z-coordinate in the world frame.
+          Negative depths mean the point reconstructed behind camera 1, a numerical artifact.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Camera 1 is at world origin.
+World z-axis = optical axis of camera 1.
+
+Cheirality condition:
+  X[2] > 0   (point is in front)
+
+Also check in camera 2's frame:
+  (R X + t)[2] > 0
+
+cv.recoverPose enforces both.
+Our additional filter enforces:
+  X[:, 2] > 0  (world frame)</pre>
+          </div>
+          <div>
+            <p class="label">Code: pipeline.py run()</p>
+            <pre>X, R, t, pts1_in, pts2_in = recover_pose(
+    F, pts1, pts2, self.K
+)
+
+# Additional positive-depth filter:
+ok = X[:, 2] > 0
+X       = X[ok]
+pts1_in = pts1_in[ok]
+pts2_in = pts2_in[ok]
+
+# On the fountain pair:
+#   after recover_pose: ~900 points
+#   after depth filter: 701 points</pre>
+          </div>
+        </div>
+
+        <h2 id="camera-model">The Camera Model: camera.py</h2>
+        <p>
+          Each camera is stored as a dataclass with K, R, t and an image path. The key
+          method is <code>project</code>, which re-projects 3D points back into the image,
+          used in Ch 04 to compute reprojection error.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math: perspective projection</p>
+            <pre>Given world point X (3D):
+  X_cam = R X + t       (world → camera)
+
+Project via pinhole model:
+  u = fx · (X_cam[0] / X_cam[2]) + cx
+  v = fy · (X_cam[1] / X_cam[2]) + cy
+
+Or compactly:
+  λ p = K [R | t] X_world
+
+Rodrigues:  R → rvec (axis-angle, 3-vector)
+  used by cv.projectPoints internally.</pre>
+          </div>
+          <div>
+            <p class="label">Code: Camera.project()</p>
+            <pre>@dataclass
+class Camera:
+    K: np.ndarray   # 3×3 intrinsics
+    R: np.ndarray   # 3×3 rotation
+    t: np.ndarray   # 3×1 translation
+    image_path: str
+
+    def project(self, pts3d):
+        rvec, _ = cv.Rodrigues(self.R)
+        proj, _ = cv.projectPoints(
+            pts3d.astype(np.float64),
+            rvec,
+            self.t.astype(np.float64),
+            self.K,
+            None,   # no distortion (calibrated)
+        )
+        return proj.reshape(-1, 2)</pre>
+          </div>
+        </div>
+
+        <h2 id="pipeline">The Full Pipeline: pipeline.py</h2>
+        <p>
+          <code>SfMPipeline.run()</code> is the orchestrator. It calls all three prior stages
+          in sequence and packages the result into a <code>Reconstruction</code> dataclass.
+        </p>
+        <pre>@dataclass
+class Reconstruction:
+    points:  np.ndarray        # (N, 3) float64, 3D point positions
+    colors:  np.ndarray        # (N, 3) float32, RGB in [0, 1]
+    cameras: list[Camera]      # two cameras: cam1 at origin, cam2 at (R, t)
+    pts2d:   list[np.ndarray]  # [pts1_in, pts2_in], matched 2D observations
+
+
+def run(self, img1_path, img2_path) -> Reconstruction:
+    # Stage 1: feature matching (Ch 01)
+    pts1, pts2 = self.matcher(img1_path, img2_path)
+
+    # Stage 2: fundamental matrix + RANSAC (Ch 02)
+    F, mask = estimate_fundamental(pts1, pts2, self.ransac_threshold, self.confidence)
+    pts1, pts2 = pts1[mask], pts2[mask]
+
+    # Stage 3: pose recovery + triangulation (this chapter)
+    X, R, t, pts1_in, pts2_in = recover_pose(F, pts1, pts2, self.K)
+    ok = X[:, 2] > 0
+    X, pts1_in, pts2_in = X[ok], pts1_in[ok], pts2_in[ok]
+
+    colors  = self._sample_colors(img2_path, pts2_in)
+    cameras = [
+        Camera.from_image(img1_path, self.K),
+        Camera(self.K, R, t, img2_path, ...),
+    ]
+    return Reconstruction(X, colors, cameras, [pts1_in, pts2_in])</pre>
+
+        <h3 id="color-sampling">Colour Sampling</h3>
+        <p>
+          Each triangulated point gets the RGB colour of its 2D observation in image 2.
+          The implementation rounds float pixel coordinates to integers and clips to image bounds.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>For each inlier point with image-2
+observation (u, v):
+
+  color = I₂[round(v), round(u)] / 255
+
+  (clamp u to [0, W−1], v to [0, H−1])
+
+Result: N×3 float32 array in [0, 1]</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre>img = cv.cvtColor(
+    cv.imread(image_path), cv.COLOR_BGR2RGB)
+h, w = img.shape[:2]
+
+xs = np.clip(pts2d[:,0].astype(int), 0, w-1)
+ys = np.clip(pts2d[:,1].astype(int), 0, h-1)
+
+colors = img[ys, xs].astype(np.float32) / 255.0
+# shape: (N, 3), dtype: float32</pre>
+          </div>
+        </div>
+
+        <h2 id="scale-ambiguity">Scale Ambiguity</h2>
+        <p>
+          <code>cv.recoverPose</code> returns a <strong>unit translation vector</strong>,
+          the direction of camera motion but not its magnitude. This is fundamental to monocular
+          SfM: the same image pair can be explained by a camera moving 10 cm with a small scene,
+          or 10 m with a proportionally larger scene. There is no way to determine absolute
+          scale without external information.
+        </p>
+        <pre># t is a unit vector: ‖t‖₂ = 1.0
+# The 3D point depths are in units of ‖t‖
+# (relative to the baseline, not metric)
+
+# To get metric scale you would need:
+#   - A known object of known size in the scene
+#   - Stereo camera with known baseline
+#   - IMU integration</pre>
+
+        <h2 id="pitfalls">Pitfalls</h2>
+        <p>
+          <strong>Cheirality drops more points than expected.</strong> Far-away points are
+          reconstructed near the epipole of the second camera, where a small angular error in F
+          flips the depth sign. This is expected behaviour. Those points have poor
+          triangulation geometry (small baseline relative to depth).
+        </p>
+        <p>
+          <strong>t is a direction, not a displacement.</strong> Using <code>‖t‖</code> as a
+          scale factor in downstream calculations silently produces wrong absolute numbers.
+        </p>
+        <p>
+          <strong>det(R) must be +1.</strong> <code>cv.recoverPose</code> guarantees this, but
+          if you implement your own decomposition, a −1 determinant gives a reflection,
+          all points end up behind the camera.
+        </p>
+
+        <h2 id="next">What's Next</h2>
+        <p>
+          Ch 04 measures how good this reconstruction actually is: reprojection error, depth
+          distribution, and a 3D visualisation with Rerun.
+        </p>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+          <a href="ch2.html" class="chapter-nav-btn">
+            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
+            Ch 02: Fundamental Matrix
+          </a>
+          <a href="ch4.html" class="chapter-nav-btn">
+            Ch 04: Evaluation &amp; Visualisation
+            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+          </a>
+        </div>
+
+      </article>
+
+      <!-- Sidebar TOC -->
+      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
+        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
+        <nav style="display:flex; flex-direction:column; gap:1px;">
+          <a href="#essential"          class="toc-link">F → Essential matrix</a>
+          <a href="#decompose"          class="toc-link">Decompose E → R, t</a>
+          <a href="#triangulation"      class="toc-link">DLT triangulation</a>
+          <a href="#cheirality-filter"  class="toc-link">Depth filter</a>
+          <a href="#camera-model"       class="toc-link">Camera model</a>
+          <a href="#pipeline"           class="toc-link">Full pipeline</a>
+          <a href="#color-sampling"     class="toc-link" style="padding-left:16px; font-size:9.5px;">Colour sampling</a>
+          <a href="#scale-ambiguity"    class="toc-link">Scale ambiguity</a>
+          <a href="#pitfalls"           class="toc-link">Pitfalls</a>
+          <a href="#next"               class="toc-link">What's next</a>
+        </nav>
+
+        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <a href="ch2.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 03 · Triangulation</span>
+            </div>
+            <a href="ch4.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 04 · Evaluation</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
+    </footer>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/scroll.js"></script>
+  <script>
+    (function () {
+      var links    = document.querySelectorAll('.toc-link');
+      var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
+      if (!links.length || !headings.length) return;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          if (link) link.classList.toggle('is-active', e.isIntersecting);
+        });
+      }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
+      headings.forEach(function (h) { obs.observe(h); });
+    })();
+  </script>
+</body>
+</html>

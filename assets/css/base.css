@@ -1,0 +1,177 @@
+/* ============================================================
+   base.css — Theme variables, reset, typography, body
+   Terminal-inspired: monospace, dark, prompt-driven
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap');
+
+/* ── Theme: Dark ── */
+html[data-theme="dark"] {
+  --bg:                    #0a0a0a;
+  --surface:               #0e0e0e;
+  --surface-2:             #121212;
+  --surface-3:             #181818;
+  --nav-bg:                rgba(10, 10, 10, 0.96);
+  --border:                rgba(255, 255, 255, 0.06);
+  --border-mid:            rgba(255, 255, 255, 0.12);
+  --border-hover:          rgba(255, 255, 255, 0.22);
+  --text:                  #e8e5de;
+  --text-dim:              rgba(232, 229, 222, 0.70);
+  --text-dimmer:           rgba(232, 229, 222, 0.45);
+  --accent:                #d4a853;
+  --accent-dim:            rgba(212, 168, 83, 0.15);
+  --accent-glow:           rgba(212, 168, 83, 0.06);
+  --cool:                  #7ba7d4;
+  --muted:                 #555460;
+  --muted-mid:             #7a7885;
+  --tag-bg:                rgba(255, 255, 255, 0.05);
+  --tag-text:              #7a7885;
+  --card-shadow-hover:     0 0 0 1px rgba(255,255,255,0.08);
+  --blog-card-shadow:      0 0 0 1px rgba(212, 168, 83, 0.10);
+  --progress-color:        #d4a853;
+  --nav-active-underline:  #d4a853;
+  --pill-bg:               rgba(255, 255, 255, 0.06);
+  --pill-thumb:            #2a2a30;
+  --pill-icon-sun:         #d4a853;
+  --pill-icon-moon:        rgba(255, 255, 255, 0.35);
+  --code-bg:               #050505;
+  --code-text:             #c5c2b8;
+  --code-border:           rgba(255, 255, 255, 0.07);
+  --inline-code-bg:        rgba(255, 255, 255, 0.07);
+  --inline-code-text:      #c5c2b8;
+  --callout-challenge-bg:     rgba(220, 80, 60, 0.07);
+  --callout-challenge-text:   #f09080;
+  --callout-challenge-border: rgba(220, 80, 60, 0.4);
+  --callout-insight-bg:       rgba(123, 167, 212, 0.07);
+  --callout-insight-text:     #a8c8e8;
+  --callout-insight-border:   rgba(123, 167, 212, 0.35);
+  --callout-note-bg:          rgba(212, 168, 83, 0.07);
+  --callout-note-text:        #e0c080;
+  --callout-note-border:      rgba(212, 168, 83, 0.35);
+  --nav-btn-bg:            #0e0e0e;
+  --nav-btn-border:        rgba(255, 255, 255, 0.08);
+  --nav-btn-text:          #555460;
+  --toc-text:              #555460;
+  --chapter-hover:         rgba(255, 255, 255, 0.025);
+  --toggle-bar-bg:         rgba(255, 255, 255, 0.025);
+  --status-draft:          #2a2a30;
+  --badge-warm-bg:         rgba(212, 168, 83, 0.10);
+  --badge-accent-bg:       rgba(123, 167, 212, 0.10);
+}
+
+/* ── Theme: Light ── */
+html[data-theme="light"] {
+  --bg:                    #f7f5f2;
+  --surface:               #ffffff;
+  --surface-2:             #f2f0ed;
+  --surface-3:             #ebe9e5;
+  --nav-bg:                rgba(247, 245, 242, 0.92);
+  --border:                rgba(0, 0, 0, 0.07);
+  --border-mid:            rgba(0, 0, 0, 0.12);
+  --border-hover:          rgba(0, 0, 0, 0.20);
+  --text:                  #1a181c;
+  --text-dim:              rgba(26, 24, 28, 0.70);
+  --text-dimmer:           rgba(26, 24, 28, 0.45);
+  --accent:                #b5812a;
+  --accent-dim:            rgba(181, 129, 42, 0.10);
+  --accent-glow:           rgba(181, 129, 42, 0.04);
+  --cool:                  #3a72a8;
+  --muted:                 #9e9b94;
+  --muted-mid:             #7a7770;
+  --tag-bg:                rgba(0, 0, 0, 0.05);
+  --tag-text:              #7a7770;
+  --card-shadow-hover:     0 4px 24px rgba(0, 0, 0, 0.07);
+  --blog-card-shadow:      0 4px 20px rgba(0, 0, 0, 0.08);
+  --progress-color:        #b5812a;
+  --nav-active-underline:  #d4a853;
+  --pill-bg:               rgba(0, 0, 0, 0.06);
+  --pill-thumb:            #ffffff;
+  --pill-icon-sun:         #d4a853;
+  --pill-icon-moon:        rgba(0, 0, 0, 0.35);
+  --code-bg:               #14131a;
+  --code-text:             #c5c2b8;
+  --code-border:           rgba(0, 0, 0, 0.15);
+  --inline-code-bg:        rgba(0, 0, 0, 0.06);
+  --inline-code-text:      #3a3830;
+  --callout-challenge-bg:     #fef4f2;
+  --callout-challenge-text:   #8a2010;
+  --callout-challenge-border: rgba(180, 60, 40, 0.4);
+  --callout-insight-bg:       #f0f5fc;
+  --callout-insight-text:     #1a3a60;
+  --callout-insight-border:   rgba(58, 114, 168, 0.35);
+  --callout-note-bg:          #fdf8ec;
+  --callout-note-text:        #6b4a10;
+  --callout-note-border:      rgba(181, 129, 42, 0.35);
+  --nav-btn-bg:            #ffffff;
+  --nav-btn-border:        rgba(0, 0, 0, 0.10);
+  --nav-btn-text:          #7a7770;
+  --toc-text:              #9e9b94;
+  --chapter-hover:         rgba(0, 0, 0, 0.018);
+  --toggle-bar-bg:         rgba(0, 0, 0, 0.018);
+  --status-draft:          #d8d6d0;
+  --badge-warm-bg:         rgba(181, 129, 42, 0.10);
+  --badge-accent-bg:       rgba(58, 114, 168, 0.10);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body ── */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: 0;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Section label ── */
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.section-label::before {
+  content: '$ ';
+  opacity: 0.45;
+}
+
+/* ── Scroll progress bar ── */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 1px;
+  background: var(--accent);
+  width: 0%;
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* ── Horizontal rule divider ── */
+.rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+/* ── Terminal cursor blink ── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 1.1em;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  animation: blink 1.1s step-end infinite;
+  margin-left: 2px;
+}

@@ -1,0 +1,24 @@
+/* ============================================================
+   animations.css — Keyframes and animation utilities
+   ============================================================ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scanLine {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100vh); }
+}
+
+.fade-up   { animation: fadeUp 0.5s ease forwards; }
+.fade-up-2 { animation: fadeUp 0.5s 0.10s ease both; }
+.fade-up-3 { animation: fadeUp 0.5s 0.20s ease both; }
+.fade-up-4 { animation: fadeUp 0.5s 0.30s ease both; }
+.fade-in   { animation: fadeIn 0.4s ease forwards; }

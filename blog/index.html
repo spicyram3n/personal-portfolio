@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Log – Poorna Sasank Sesetti</title>
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('ps-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['IBM Plex Serif', 'Georgia', 'serif'],
+            mono:  ['IBM Plex Mono', 'monospace'],
+            sans:  ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/animations.css">
+  <link rel="stylesheet" href="../assets/css/terminal.css">
+  <style>
+    .ch-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.85rem 1.5rem;
+      border-top: 1px solid var(--border);
+      text-decoration: none;
+      transition: background 0.12s;
+    }
+    .ch-row:hover { background: var(--chapter-hover); }
+    .ch-row-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-top: 2px;
+      transition: color 0.12s;
+      line-height: 1.4;
+    }
+    .ch-row:hover .ch-row-title { color: var(--accent); }
+    .ch-row-sub {
+      font-size: 11px;
+      color: var(--text-dimmer);
+      margin-top: 3px;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+    .ch-row-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      color: var(--muted);
+      margin-bottom: 1px;
+    }
+  </style>
+</head>
+<body class="font-sans">
+
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <div class="site-nav__left">
+        <a href="../index.html" class="site-nav__wordmark">← Home</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun toggle-icon-sun"></i>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <i class="fa-solid fa-moon toggle-icon-moon"></i>
+        </button>
+      </div>
+      <nav class="site-nav__links">
+        <a href="../index.html"     class="nav-link">Home</a>
+        <a href="../projects.html"       class="nav-link">Projects</a>
+        <a href="../index.html#journey"  class="nav-link">Work</a>
+        <a href="../index.html#now" class="nav-link">Research</a>
+        <a href="index.html"             class="nav-link nav-link--blog">Blog</a>
+        <a href="../index.html#contact"  class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+
+    <div class="mb-12 fade-up">
+      <p class="section-label">Writing</p>
+      <h1 style="font-family: 'IBM Plex Mono', monospace; font-size: 1.5rem; font-weight: 500; letter-spacing: -0.01em; color: var(--text); margin-top: 0.25rem; margin-bottom: 0.75rem;">
+        Build Log
+      </h1>
+      <p style="font-size: 13.5px; color: var(--text-dimmer); font-weight: 300; max-width: 440px; line-height: 1.75;">
+        I build things, hit walls, figure them out, and write it all down.
+        Long-form series documenting my MSc work in progress.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-6 mb-10 fade-up-2" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em;">
+      <span style="color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em;">Status</span>
+      <span class="flex items-center gap-2" style="color: var(--text-dimmer);">
+        <span class="status-dot status-dot--published"></span> Published
+      </span>
+      <span class="flex items-center gap-2" style="color: var(--text-dimmer);">
+        <span class="status-dot status-dot--wip"></span> In progress
+      </span>
+      <span class="flex items-center gap-2" style="color: var(--text-dimmer);">
+        <span class="status-dot status-dot--draft"></span> Planned
+      </span>
+    </div>
+
+    <div class="space-y-px fade-up-3">
+
+      <!-- Series 01: casualSfM -->
+      <div id="sfm" class="series-card">
+        <div style="padding: 1.25rem 1.5rem 1rem;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem;">
+                <span class="badge badge--warm">Series 01</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);">· Ongoing</span>
+              </div>
+              <h2 style="font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; line-height: 1.3; letter-spacing: -0.01em;">
+                Building Structure from Motion from Scratch
+              </h2>
+              <p style="font-size: 13px; color: var(--text-dim); font-weight: 300; line-height: 1.65; margin-bottom: 0.75rem; max-width: 500px;">
+                A ground-up Python implementation of two-view Structure from Motion, from raw image pairs
+                to a coloured 3D point cloud. Hand-rolled 8-point algorithm, RANSAC, DLT triangulation,
+                and a full evaluation suite. Every formula paired with the code that implements it.
+              </p>
+              <div>
+                <span class="tag">Python</span>
+                <span class="tag">NumPy</span>
+                <span class="tag">OpenCV</span>
+                <span class="tag">SIFT</span>
+                <span class="tag">Epipolar Geometry</span>
+              </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0; display: none;" class="sm:block">
+              <p style="font-family: 'IBM Plex Mono', monospace; font-size: 1.75rem; font-weight: 500; color: var(--border-hover); line-height: 1;">4</p>
+              <p style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);">chapters</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="chapter-toggle-btn" onclick="toggleChapters('sfm-chapters', this)">
+          <span class="toggle-label">Hide chapters</span>
+          <i class="fa-solid fa-chevron-down toggle-chevron rotated"></i>
+        </button>
+
+        <div id="sfm-chapters" class="chapter-list open">
+
+          <a href="casual-sfm/ch1.html" class="ch-row">
+            <span class="status-dot status-dot--published" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 01 · Feb 2026</div>
+              <p class="ch-row-title">Feature Detection &amp; Matching: SIFT, Descriptors &amp; the Ratio Test</p>
+              <p class="ch-row-sub">DoG keypoints · 128-D gradient histogram · Lowe ratio test · <code>features.py</code></p>
+            </div>
+            <i class="fa-solid fa-arrow-right" style="color:var(--muted); font-size:10px; margin-top:6px; flex-shrink:0;"></i>
+          </a>
+
+          <a href="casual-sfm/ch2.html" class="ch-row">
+            <span class="status-dot status-dot--published" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 02 · Mar 2026</div>
+              <p class="ch-row-title">The Fundamental Matrix: Normalised 8-Point &amp; RANSAC</p>
+              <p class="ch-row-sub">p₂ᵀFp₁=0 · Hartley normalisation · SVD · symmetric epipolar distance · <code>geometry.py</code></p>
+            </div>
+            <i class="fa-solid fa-arrow-right" style="color:var(--muted); font-size:10px; margin-top:6px; flex-shrink:0;"></i>
+          </a>
+
+          <a href="casual-sfm/ch3.html" class="ch-row">
+            <span class="status-dot status-dot--published" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 03 · Apr 2026</div>
+              <p class="ch-row-title">Pose Recovery &amp; Triangulation: Essential Matrix to 3D Points</p>
+              <p class="ch-row-sub">E = KᵀFK · cheirality · DLT triangulation · pipeline assembly · <code>camera.py</code></p>
+            </div>
+            <i class="fa-solid fa-arrow-right" style="color:var(--muted); font-size:10px; margin-top:6px; flex-shrink:0;"></i>
+          </a>
+
+          <a href="casual-sfm/ch4.html" class="ch-row">
+            <span class="status-dot status-dot--published" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 04 · Apr 2026</div>
+              <p class="ch-row-title">Evaluation &amp; Visualisation: Reprojection Error &amp; Rerun</p>
+              <p class="ch-row-sub">701 pts · 0.50 px mean · depth distribution · <code>evaluate.py</code> · <code>visualize.py</code></p>
+            </div>
+            <i class="fa-solid fa-arrow-right" style="color:var(--muted); font-size:10px; margin-top:6px; flex-shrink:0;"></i>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Series 02: SLAM -->
+      <div id="slam" class="series-card" style="margin-top: 1px;">
+        <div style="padding: 1.25rem 1.5rem 1rem;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem;">
+                <span class="badge badge--accent">Series 02</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);">· Upcoming</span>
+              </div>
+              <h2 style="font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; line-height: 1.3; letter-spacing: -0.01em;">
+                Building a Visual SLAM System
+              </h2>
+              <p style="font-size: 13px; color: var(--text-dim); font-weight: 300; line-height: 1.65; margin-bottom: 0.75rem; max-width: 500px;">
+                Taking SfM further: loop closure, factor graph optimisation, and a full SLAM system.
+                Starts once the SfM series wraps up.
+              </p>
+              <div>
+                <span class="tag">C++</span>
+                <span class="tag">GTSAM</span>
+                <span class="tag">Loop Closure</span>
+                <span class="tag">Bundle Adjustment</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="chapter-toggle-btn" onclick="toggleChapters('slam-chapters', this)">
+          <span class="toggle-label">View planned chapters</span>
+          <i class="fa-solid fa-chevron-down toggle-chevron"></i>
+        </button>
+
+        <div id="slam-chapters" class="chapter-list">
+          <div class="ch-row" style="opacity: 0.3; pointer-events: none;">
+            <span class="status-dot status-dot--draft" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 01 · Planned</div>
+              <p class="ch-row-title">Why SLAM? Extending SfM with a Live Map</p>
+              <p class="ch-row-sub">Limitations of offline SfM · keyframe management · online operation</p>
+            </div>
+          </div>
+          <div class="ch-row" style="opacity: 0.3; pointer-events: none;">
+            <span class="status-dot status-dot--draft" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 02 · Planned</div>
+              <p class="ch-row-title">Factor Graphs &amp; Graph Optimisation</p>
+              <p class="ch-row-sub">GTSAM intro · pose graph · bundle adjustment</p>
+            </div>
+          </div>
+          <div class="ch-row" style="opacity: 0.3; pointer-events: none;">
+            <span class="status-dot status-dot--draft" style="margin-top:6px; flex-shrink:0;"></span>
+            <div style="flex:1; min-width:0;">
+              <div class="ch-row-meta">Ch 03 · Planned</div>
+              <p class="ch-row-title">Loop Closure Detection with DBoW2</p>
+              <p class="ch-row-sub">Bag of visual words · place recognition</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="site-footer">© 2026 Poorna Sasank Sesetti</footer>
+  </main>
+
+  <script src="../assets/js/theme.js"></script>
+  <script src="../assets/js/blog.js"></script>
+</body>
+</html>

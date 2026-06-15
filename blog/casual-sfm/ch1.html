@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ch 01 – Feature Detection & Matching · casualSfM</title>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/animations.css">
+  <link rel="stylesheet" href="../../assets/css/terminal.css">
+  <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <style>
+    #progress-bar { top: 0; z-index: 200; }
+  </style>
+</head>
+<body class="font-sans">
+  <div id="progress-bar"></div>
+
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <div class="site-nav__left">
+        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun toggle-icon-sun"></i>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <i class="fa-solid fa-moon toggle-icon-moon"></i>
+        </button>
+      </div>
+      <nav class="site-nav__links">
+        <a href="../../index.html"    class="nav-link">Home</a>
+        <a href="../../projects.html"      class="nav-link">Projects</a>
+        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
+        <a href="../../index.html#contact" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+
+    <div class="mb-8 fade-up">
+      <div class="breadcrumb">
+        <a href="../index.html">Build Log</a><span class="sep">/</span>
+        <span>casualSfM</span><span class="sep">/</span>
+        <span class="current">Ch 01</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+        <span class="badge badge--warm">Series 01 · Ch 01</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">February 2026 · ~10 min read</span>
+      </div>
+      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+        Feature Detection &amp; Matching<br>SIFT, Descriptors &amp; the Ratio Test
+      </h1>
+      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+        SfM starts by finding pixels in two photos that show the same physical point. This chapter covers
+        how SIFT detects and describes those pixels, and how the ratio test filters the resulting matches.
+        Source: <code>features.py</code>.
+      </p>
+    </div>
+
+    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
+      <article class="prose" style="flex:1; min-width:0;">
+
+        <h2 id="pipeline">The Pipeline at a Glance</h2>
+        <p>casualSfM is a two-view reconstruction pipeline with four stages. This chapter is stage 1.</p>
+        <pre>images
+  → [Ch 01] feature detection & matching   ← you are here
+  → [Ch 02] fundamental matrix + RANSAC
+  → [Ch 03] pose recovery + triangulation
+  → [Ch 04] evaluation + visualisation</pre>
+        <p>
+          All stages are independent modules. The output of stage 1 is two NumPy arrays of
+          pixel coordinates (one per image) of shape <code>(K, 2)</code> float32.
+        </p>
+
+        <h2 id="sift-detection">SIFT Detection: Finding Keypoints</h2>
+        <p>
+          SIFT (Lowe, 2004) finds blob-like structures by looking for extrema in the
+          <strong>Difference of Gaussians</strong> (DoG) scale space. At each scale σ:
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>D(x, y, σ) = ( G(x, y, kσ) − G(x, y, σ) ) ∗ I(x, y)
+
+G(x, y, σ) = (1/2πσ²) · exp(−(x²+y²)/2σ²)
+
+Keypoint candidate: local extremum of D
+in a 3×3×3 neighbourhood (x, y, scale)</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre>sift = cv.SIFT_create()
+
+kp1, desc1 = sift.detectAndCompute(img1, None)
+kp2, desc2 = sift.detectAndCompute(img2, None)
+
+# kp:   list of cv.KeyPoint objects
+#        .pt    → (x, y) pixel position
+#        .size  → detected scale
+#        .angle → dominant orientation
+# desc: float32 array, shape (N, 128)</pre>
+          </div>
+        </div>
+        <p>
+          Keypoints are refined to sub-pixel precision by fitting a 3D quadratic to the
+          DoG extremum. Weak-contrast candidates are discarded via a contrast threshold;
+          edge-like responses are discarded via the ratio of principal curvatures.
+        </p>
+
+        <h2 id="sift-descriptor">SIFT Descriptor: 128-D Fingerprint</h2>
+        <p>
+          Around each keypoint a 16×16 patch is extracted, aligned to the keypoint's
+          dominant gradient orientation. The patch is divided into a 4×4 grid of sub-regions;
+          each sub-region contributes an 8-bin gradient histogram.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Patch: 16×16 px, rotated to keypoint orientation
+Grid:  4×4 cells, each 4×4 px
+Bins:  8 gradient orientations per cell
+
+Descriptor: 4 × 4 × 8 = 128 floats
+
+Post-processing:
+  d ← d / ‖d‖₂           (unit norm)
+  d ← clip(d, 0, 0.2)    (clamp large values)
+  d ← d / ‖d‖₂           (renormalise)</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre># detectAndCompute handles all of this:
+# detection + orientation + descriptor
+# in a single OpenCV call.
+
+# desc1.shape → (N, 128)
+# dtype       → float32
+# norm        → ≈ 1.0 (unit length)
+
+# The 128-D vector encodes gradient
+# structure, not raw pixel intensities,
+# making it robust to lighting change.</pre>
+          </div>
+        </div>
+
+        <h2 id="matching">Brute-Force Nearest Neighbour</h2>
+        <p>
+          For each descriptor in image 1, find the two closest descriptors in image 2 by
+          Euclidean distance. With N ≈ 8,000 keypoints per image this is ~8k × 8k × 128
+          multiplications, feasible via BLAS in OpenCV's BFMatcher.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>d(a, b) = ‖a − b‖₂ = √Σᵢ(aᵢ − bᵢ)²
+
+For each desc in image 1:
+  m = argmin   d(desc, desc2[j])
+       j
+  n = argmin   d(desc, desc2[j])
+       j ≠ m
+# m → best match, n → second-best</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre>bf = cv.BFMatcher()   # L2 norm (for SIFT floats)
+                      # use NORM_HAMMING for ORB
+
+raw = bf.knnMatch(desc1, desc2, k=2)
+# raw: list of (DMatch m, DMatch n)
+# m.distance → d(best)
+# n.distance → d(second-best)</pre>
+          </div>
+        </div>
+
+        <h2 id="ratio-test">Lowe's Ratio Test</h2>
+        <p>
+          A match is ambiguous if the second-best descriptor is nearly as close as the best.
+          The ratio test discards those ambiguous cases.
+        </p>
+        <div class="math-code">
+          <div>
+            <p class="label">Math</p>
+            <pre>Keep match m iff:
+
+  d(m) / d(n) &lt; τ,   τ = 0.75
+
+Interpretation:
+  If best match is clearly closer than
+  second-best → distinctive → keep.
+  If they are nearly equal → ambiguous
+  (repetitive texture) → discard.</pre>
+          </div>
+          <div>
+            <p class="label">Code</p>
+            <pre>good = [
+    m for m, n in raw
+    if m.distance &lt; 0.75 * n.distance
+]
+
+# Extract pixel coordinates
+pts1 = np.float32(
+    [kp1[m.queryIdx].pt for m in good])
+pts2 = np.float32(
+    [kp2[m.trainIdx].pt for m in good])
+
+# Output: float32 arrays, shape (K, 2)</pre>
+          </div>
+        </div>
+
+        <div class="callout callout--insight">
+          <span class="callout-label">Key insight</span>
+          The ratio test is scale-free. It doesn't matter how large the distances are in absolute terms,
+          only their relative separation. Lowe reported 90% of false matches eliminated at τ = 0.8
+          with 95% of correct matches retained.
+        </div>
+
+        <h2 id="full-class">The Full Class</h2>
+        <pre>class FeatureMatcher:
+    def __init__(self, ratio_threshold: float = 0.75):
+        self.sift = cv.SIFT_create()
+        self.bf   = cv.BFMatcher()        # L2 norm by default
+        self.ratio_threshold = ratio_threshold
+
+    def __call__(self, img1_path, img2_path):
+        img1 = cv.imread(img1_path, cv.IMREAD_GRAYSCALE)
+        img2 = cv.imread(img2_path, cv.IMREAD_GRAYSCALE)
+
+        kp1, desc1 = self.sift.detectAndCompute(img1, None)
+        kp2, desc2 = self.sift.detectAndCompute(img2, None)
+
+        raw  = self.bf.knnMatch(desc1, desc2, k=2)
+        good = [m for m, n in raw
+                if m.distance &lt; self.ratio_threshold * n.distance]
+
+        pts1 = np.float32([kp1[m.queryIdx].pt for m in good])
+        pts2 = np.float32([kp2[m.trainIdx].pt for m in good])
+        return pts1, pts2</pre>
+
+        <div class="callout callout--note">
+          <span class="callout-label">Numbers on our fountain sequence</span>
+          SIFT detects ~8,000 keypoints per image. knnMatch returns ~4,000 raw pairs.
+          After the ratio test at τ = 0.75, roughly <strong>1,500–2,000 survive</strong>.
+          After RANSAC in Ch 02, ~900 are epipolar inliers. After cheirality in Ch 03,
+          the final count is <strong>701 triangulated points</strong>.
+        </div>
+
+        <h2 id="pitfalls">Pitfalls</h2>
+        <p>
+          <strong>Load in grayscale.</strong> Passing a 3-channel BGR image to
+          <code>detectAndCompute</code> causes an internal format error. Always use
+          <code>cv.IMREAD_GRAYSCALE</code>.
+        </p>
+        <p>
+          <strong>L2 vs Hamming.</strong> <code>BFMatcher()</code> defaults to L2, correct
+          for SIFT's float descriptors. ORB produces binary descriptors, so use
+          <code>BFMatcher(cv.NORM_HAMMING)</code> instead. Mixing them gives nonsensical distances.
+        </p>
+        <p>
+          <strong>Ratio threshold is scene-dependent.</strong> 0.75 works well on our richly
+          textured fountain. On repetitive scenes (uniform brickwork, tiled floors) lower τ
+          to 0.6 to avoid ambiguous matches, accepting fewer total correspondences.
+        </p>
+        <p>
+          <strong>These matches still contain outliers.</strong> The ratio test is permissive
+          by design. RANSAC in Ch 02 is what actually rejects wrong correspondences.
+        </p>
+
+        <h2 id="next">What's Next</h2>
+        <p>
+          Ch 02 takes <code>pts1</code> and <code>pts2</code> and estimates the Fundamental Matrix
+          F (the geometric constraint between the two camera positions) using a hand-rolled
+          normalised 8-point algorithm wrapped in RANSAC.
+        </p>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+          <a href="ch2.html" class="chapter-nav-btn">
+            Chapter 02: The Fundamental Matrix &amp; RANSAC
+            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+          </a>
+        </div>
+
+      </article>
+
+      <!-- Sidebar TOC -->
+      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
+        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
+        <nav style="display:flex; flex-direction:column; gap:1px;">
+          <a href="#pipeline"         class="toc-link">Pipeline overview</a>
+          <a href="#sift-detection"   class="toc-link">SIFT detection</a>
+          <a href="#sift-descriptor"  class="toc-link">128-D descriptor</a>
+          <a href="#matching"         class="toc-link">BF matching</a>
+          <a href="#ratio-test"       class="toc-link">Ratio test</a>
+          <a href="#full-class"       class="toc-link">Full class</a>
+          <a href="#pitfalls"         class="toc-link">Pitfalls</a>
+          <a href="#next"             class="toc-link">What's next</a>
+        </nav>
+
+        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
+          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
+          <div class="ch-series-nav">
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 01 · Features</span>
+            </div>
+            <a href="ch2.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
+            </a>
+            <a href="ch3.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 03 · Triangulation</span>
+            </a>
+            <a href="ch4.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 04 · Evaluation</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
+    </footer>
+  </main>
+
+  <script src="../../assets/js/theme.js"></script>
+  <script src="../../assets/js/scroll.js"></script>
+  <script>
+    // TOC scroll-spy
+    (function () {
+      var links    = document.querySelectorAll('.toc-link');
+      var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
+      if (!links.length || !headings.length) return;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          if (link) link.classList.toggle('is-active', e.isIntersecting);
+        });
+      }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
+      headings.forEach(function (h) { obs.observe(h); });
+    })();
+  </script>
+</body>
+</html>
