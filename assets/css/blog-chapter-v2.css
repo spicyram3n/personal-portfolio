@@ -1,0 +1,290 @@
+/* ============================================================
+   blog-chapter-v2.css — reading-first chapter layout
+   Centered prose at a comfortable measure, with math/code/figures
+   that "break out" wider than the text to use the page. Real
+   KaTeX math. Inspired by Distill / gwern / Gundersen layouts.
+   ============================================================ */
+
+/* ── reading progress bar ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0;
+  z-index: 200;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2, #5fd9ff));
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ── chapter shell ── */
+.ch {
+  --measure: 64ch;        /* prose line length */
+  --wide: 920px;          /* width of breakout blocks */
+  --aside: 200px;         /* margin TOC width */
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  padding-bottom: 5rem;
+}
+
+/* header: centered to the wide frame */
+.ch-head {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 6.5rem 1.5rem 2rem;
+}
+.breadcrumb {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 0.04em; color: var(--muted);
+  display: flex; align-items: center; gap: 7px; margin-bottom: 1.5rem;
+}
+.breadcrumb a { color: var(--muted); text-decoration: none; transition: color .15s; }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb .sep { color: var(--border-mid); }
+.breadcrumb .current { color: var(--text-dimmer); }
+
+.ch-kicker { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.1rem; }
+.ch-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+
+.ch-title {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 600;
+  line-height: 1.08; letter-spacing: -0.025em;
+  color: var(--text); margin-bottom: .7rem;
+}
+.ch-sub {
+  font-size: 1.15rem; color: var(--text-dim); font-style: italic;
+  margin-bottom: 1.6rem; max-width: 54ch;
+}
+.ch-dek {
+  font-size: 1.15rem; line-height: 1.7; color: var(--text);
+  opacity: .85; max-width: var(--measure);
+  padding-top: 1.4rem; border-top: 1px solid var(--border);
+}
+.ch-dek code { font-family: 'IBM Plex Mono', monospace; font-size: .85em;
+  background: var(--inline-code-bg); padding: 1px 5px; border-radius: 3px;
+  border: 1px solid var(--border); }
+
+/* ── body grid: [margin | aside | prose | margin] ──
+   prose centered at measure; aside floats to its left at wide breakpoints */
+.ch-body {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 0;
+  position: relative;
+}
+
+/* prose column: centered, reading width */
+.ch-prose {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+/* paragraphs */
+.ch-prose p {
+  font-size: 1.125rem; line-height: 1.78; color: var(--text);
+  opacity: .9; margin: 0 0 1.35rem;
+}
+.ch-prose strong { font-weight: 600; opacity: 1; color: var(--text); }
+.ch-prose em { font-style: italic; }
+.ch-prose code {
+  font-family: 'IBM Plex Mono', monospace; font-size: .85em;
+  background: var(--inline-code-bg); color: var(--inline-code-text);
+  padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+}
+
+/* section headings */
+.ch-prose section { padding-top: 1rem; }
+.ch-prose h2 {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.6rem; font-weight: 600; letter-spacing: -0.015em;
+  color: var(--text); margin: 2.6rem 0 1rem; line-height: 1.2;
+}
+.ch-prose h2::before {
+  content: ''; display: block; width: 30px; height: 2px;
+  background: var(--accent); opacity: .7; margin-bottom: .9rem;
+}
+.ch-prose section:first-child h2 { margin-top: 0; }
+
+/* ── BREAKOUT: wide blocks escape the measure, centered on the frame ── */
+.wide {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 1.9rem auto;
+}
+/* pull wide blocks out to the frame edges from inside the narrow column */
+@media (min-width: 1000px) {
+  .wide {
+    width: var(--wide);
+    margin-left: calc(50% - var(--wide) / 2);
+    margin-right: calc(50% - var(--wide) / 2);
+  }
+}
+figure.wide { margin-top: 1.9rem; margin-bottom: 1.9rem; }
+
+/* ── math|code two-pane figure ── */
+.math-figure {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  background: var(--surface);
+}
+.math-figure__math { padding: 1.3rem 1.5rem; border-right: 1px solid var(--border); min-width: 0; }
+.math-figure__code { min-width: 0; display: flex; flex-direction: column; background: var(--code-bg); }
+.pane-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted);
+  margin: 0 0 .9rem;
+}
+.math-figure__code .pane-label { padding: 1rem 1.3rem .3rem; margin: 0; }
+.math-figure__math p {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: .98rem; line-height: 1.6; color: var(--text-dim);
+  margin: 0 0 .7rem;
+}
+.math-figure__math p:last-child { margin-bottom: 0; }
+
+/* KaTeX display blocks */
+.m-block {
+  margin: .9rem 0 1.1rem; padding: .2rem 0;
+  overflow-x: auto; overflow-y: hidden;
+}
+.katex-display { margin: 0 !important; }
+.katex { font-size: 1.05em; }
+.m-block .katex { color: var(--text); }
+/* inline math sits in serif text */
+.m .katex { font-size: 1em; }
+
+/* code panes */
+.math-figure__code pre {
+  margin: 0; padding: .3rem 1.3rem 1.2rem; flex: 1;
+  overflow-x: auto; background: transparent; border: none;
+}
+.math-figure__code code,
+.codeblock code {
+  font-family: 'IBM Plex Mono', monospace; font-size: .8rem;
+  line-height: 1.7; color: var(--code-text); background: none;
+  border: none; padding: 0; white-space: pre;
+}
+
+/* standalone wide code block */
+.codeblock {
+  background: var(--code-bg); color: var(--code-text);
+  border: 1px solid var(--border); border-left: 2px solid var(--accent);
+  border-radius: 8px; padding: 1.2rem 1.5rem; margin: 0;
+  overflow-x: auto;
+}
+
+@media (max-width: 720px) {
+  .math-figure { grid-template-columns: 1fr; }
+  .math-figure__math { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+/* ── pipeline flow diagram ── */
+.diagram { display: flex; justify-content: center; }
+.flow {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .55rem;
+  justify-content: center; padding: 1.3rem 1.5rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); width: 100%;
+}
+.flow-step {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;
+  padding: .4rem .7rem; border: 1px solid var(--border-mid);
+  border-radius: 5px; color: var(--text-dim); white-space: nowrap;
+}
+.flow-step--active {
+  color: var(--accent); border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.flow-arrow { color: var(--text-dimmer); font-size: 12px; }
+
+/* ── callouts ── */
+.callout {
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 1.1rem 1.3rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0;
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.02rem; line-height: 1.7; color: var(--text); opacity: .95;
+}
+.callout--note { border-color: var(--accent-2, #5fd9ff);
+  background: color-mix(in srgb, var(--accent-2, #5fd9ff) 9%, transparent); }
+.callout-label {
+  display: block; font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--accent); margin-bottom: .5rem;
+}
+.callout--note .callout-label { color: var(--accent-2, #5fd9ff); }
+.callout strong { font-weight: 600; }
+.callout .m { white-space: nowrap; }
+
+/* ── next-chapter link ── */
+.next-link {
+  display: inline-flex; align-items: center; gap: .6rem;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  color: var(--accent); text-decoration: none;
+  margin-top: 1.5rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border); width: 100%;
+}
+.next-link i { font-size: 10px; transition: transform .15s; }
+.next-link:hover i { transform: translateX(4px); }
+
+/* ── floating sidebar (TOC + series) ── */
+.ch-aside { display: none; }
+@media (min-width: 1180px) {
+  .ch-aside {
+    display: block; position: fixed;
+    top: 7rem;
+    left: calc(50% - var(--wide) / 2 - var(--aside) - 2.5rem);
+    width: var(--aside);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+.aside-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--muted); margin-bottom: .7rem;
+}
+.toc { display: flex; flex-direction: column; gap: 2px; margin-bottom: 2rem; }
+.toc-link {
+  position: relative; padding: 3px 0 3px 16px;
+  font-size: 12px; color: var(--muted); text-decoration: none;
+  transition: color .15s; line-height: 1.4;
+}
+.toc-link::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 5px; height: 5px; border-radius: 50%;
+  border: 1px solid var(--border-mid); background: transparent;
+  transition: all .2s;
+}
+.toc-link:hover { color: var(--text-dim); }
+.toc-link.is-registered:not(.is-active) { color: var(--text-dim); }
+.toc-link.is-registered:not(.is-active)::before {
+  background: var(--accent); border-color: var(--accent); opacity: .4;
+}
+.toc-link.is-active { color: var(--text); }
+.toc-link.is-active::before {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.aside-series { border-top: 1px solid var(--border); padding-top: 1.2rem; }
+.series-item {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 11.5px; color: var(--muted); text-decoration: none;
+  padding: 3px 0; transition: color .15s;
+}
+.series-item .dot {
+  width: 5px; height: 5px; background: var(--accent);
+  flex-shrink: 0; opacity: .5;
+}
+.series-item:hover { color: var(--accent); }
+.series-item--active { color: var(--text); }
+.series-item--active .dot { opacity: 1; box-shadow: 0 0 6px var(--accent); }
+
+/* ── footer ── */
+.ch-foot {
+  max-width: var(--measure); margin: 4rem auto 0; padding: 2rem 1.5rem 0;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--text-dimmer); text-align: center;
+}
+.ch-foot a { color: var(--accent); text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #progress-bar { box-shadow: none; }
+}

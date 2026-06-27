@@ -16,6 +16,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/site.css">
   <style>
+    /* ── registration theme (matches homepage) ── */
+    :root { --accent-2:#5fd9ff; --point:rgba(140,150,160,0.55); --point-lit:rgba(60,196,124,0.9); }
+    html[data-theme="light"] { --accent-2:#1f7fa8; --point:rgba(40,50,60,0.40); --point-lit:rgba(21,145,90,0.85); }
+
+    #cloud { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+    body > nav, body > main, body > footer { position:relative; z-index:1; }
+
+    .recon-hud {
+      position:fixed; left:1.1rem; bottom:1rem; z-index:40;
+      font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+      color:var(--text-dimmer); line-height:1.7; pointer-events:none; user-select:none;
+      letter-spacing:0.02em;
+    }
+    .recon-hud b { color:var(--accent); font-weight:500; }
+    .recon-hud .reg { color:var(--accent-2); }
+    @media (max-width:640px){ .recon-hud{ display:none; } }
+
+    /* cards register into the frame as they scroll in */
+    #grid .card {
+      opacity:0; transform:translateY(24px); filter:blur(6px);
+      transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1), filter .6s ease;
+      will-change:opacity,transform,filter;
+    }
+    #grid .card.registered { opacity:1; transform:none; filter:none; }
+    @media (prefers-reduced-motion:reduce){
+      #grid .card { opacity:1; transform:none; filter:none; transition:none; }
+    }
+
     .filter-bar { display: flex; gap: 6px; margin: 1.25rem 0 0.5rem; flex-wrap: wrap; }
     .fpill {
       font-family: 'IBM Plex Mono', monospace; font-size: 12px;
@@ -29,6 +57,13 @@
   </style>
 </head>
 <body>
+
+  <canvas id="cloud"></canvas>
+
+  <div class="recon-hud" id="hud">
+    <div>frame <b id="hud-frame">000</b> · <span class="reg">REGISTERED</span></div>
+    <div>points <b id="hud-pts">0000</b> · projects <b id="hud-sec">0</b>/<span id="hud-tot">7</span></div>
+  </div>
 
   <nav class="nav">
     <div class="nav-inner">
@@ -49,7 +84,7 @@
     <header style="padding:4rem 0 1rem" class="fade">
       <div class="sec-head" style="margin-bottom:0.5rem">
         <span class="prompt mono">ps@bonn ~/projects $</span>
-        <span class="mono" style="color:var(--text-dimmer);font-size:13px">ls -la</span>
+        <span class="mono" style="color:var(--text-dimmer);font-size:13px">registering scene</span>
       </div>
       <h1 style="font-family:'IBM Plex Serif',serif;font-weight:600;font-size:2rem;color:var(--text);margin-bottom:0.4rem">Projects</h1>
       <p style="font-size:14.5px;color:var(--text-dim);max-width:52ch">
@@ -164,15 +199,97 @@
 
   <script src="assets/js/theme.js"></script>
   <script>
+    /* ── point-cloud background (matches homepage) ── */
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var cv = document.getElementById('cloud'); if(!cv) return;
+      var ctx = cv.getContext('2d');
+      var DPR = Math.min(window.devicePixelRatio || 1, 2);
+      var W,H,pts=[],N;
+      function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+      var col={};
+      function readColors(){ col.point=css('--point'); col.lit=css('--point-lit'); col.edge=css('--border'); }
+      function resize(){
+        W=cv.width=innerWidth*DPR; H=cv.height=innerHeight*DPR;
+        cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+        N=Math.min(160, Math.floor(innerWidth/9)); pts=[];
+        for(var i=0;i<N;i++) pts.push({x:Math.random()*W,y:Math.random()*H,z:Math.random(),
+          vx:(Math.random()-0.5)*0.18*DPR, vy:(Math.random()-0.5)*0.18*DPR});
+      }
+      var mouse={x:-9999,y:-9999};
+      window.addEventListener('pointermove',function(e){ mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; });
+      window.addEventListener('pointerleave',function(){ mouse.x=mouse.y=-9999; });
+      function frame(){
+        ctx.clearRect(0,0,W,H);
+        var linkD=120*DPR, linkD2=linkD*linkD;
+        for(var i=0;i<N;i++){
+          var p=pts[i]; p.x+=p.vx; p.y+=p.vy;
+          if(p.x<0)p.x+=W; if(p.x>W)p.x-=W; if(p.y<0)p.y+=H; if(p.y>H)p.y-=H;
+          for(var j=i+1;j<N;j++){
+            var q=pts[j], dx=p.x-q.x, dy=p.y-q.y, d2=dx*dx+dy*dy;
+            if(d2<linkD2){
+              ctx.strokeStyle=col.edge; ctx.globalAlpha=(1-d2/linkD2)*0.5*0.6;
+              ctx.lineWidth=0.6*DPR; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+            }
+          }
+        }
+        ctx.globalAlpha=1;
+        for(var k=0;k<N;k++){
+          var pt=pts[k], mdx=pt.x-mouse.x, mdy=pt.y-mouse.y;
+          var near=(mdx*mdx+mdy*mdy)<(140*DPR*140*DPR);
+          var r=(0.7+pt.z*1.5)*DPR*(near?1.8:1);
+          ctx.beginPath(); ctx.arc(pt.x,pt.y,r,0,Math.PI*2);
+          ctx.fillStyle=near?col.lit:col.point;
+          ctx.globalAlpha=near?0.95:(0.35+pt.z*0.4); ctx.fill();
+        }
+        ctx.globalAlpha=1;
+        if(!reduce) requestAnimationFrame(frame);
+      }
+      readColors(); resize();
+      window.addEventListener('resize',function(){ readColors(); resize(); if(reduce) frame(); });
+      new MutationObserver(function(){ readColors(); if(reduce) frame(); })
+        .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+      frame();
+    })();
+  </script>
+  <script>
     var pills = document.querySelectorAll('.fpill');
     var cards = document.querySelectorAll('#grid .card');
     var count = document.getElementById('count');
-    function apply(f) {
+
+    /* ── registration: cards snap into the frame + drive the HUD ── */
+    var hudFrame=document.getElementById('hud-frame'),
+        hudPts=document.getElementById('hud-pts'),
+        hudSec=document.getElementById('hud-sec'),
+        hudTot=document.getElementById('hud-tot');
+    if(hudTot) hudTot.textContent = cards.length;
+    var registered=0, basePts=1284;
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting && !en.target.classList.contains('registered')){
+          en.target.classList.add('registered');
+          registered++;
+          if(hudSec) hudSec.textContent=registered;
+          if(hudPts) hudPts.textContent=String(basePts+registered*617).padStart(4,'0');
+        }
+      });
+    },{ threshold:0.16, rootMargin:'0px 0px -6% 0px' });
+    cards.forEach(function(c){ io.observe(c); });
+
+    var f=0, ticking=false;
+    window.addEventListener('scroll', function(){
+      if(!ticking){ requestAnimationFrame(function(){
+        f=(f+1)%1000; if(hudFrame) hudFrame.textContent=String(f).padStart(3,'0'); ticking=false;
+      }); ticking=true; }
+    }, { passive:true });
+
+    /* ── filter (re-registers visible cards instantly) ── */
+    function apply(f, instant) {
       var n = 0;
       cards.forEach(function (c) {
         var show = f === 'all' || (c.dataset.tags || '').indexOf(f) !== -1;
         c.style.display = show ? '' : 'none';
-        if (show) n++;
+        if (show){ n++; if(instant) c.classList.add('registered'); }
       });
       count.textContent = n + (n === 1 ? ' project' : ' projects');
     }
@@ -180,10 +297,10 @@
       p.addEventListener('click', function () {
         pills.forEach(function (x) { x.classList.remove('active'); });
         p.classList.add('active');
-        apply(p.dataset.filter);
+        apply(p.dataset.filter, true);
       });
     });
-    apply('all');
+    apply('all', false);
   </script>
 </body>
 </html>

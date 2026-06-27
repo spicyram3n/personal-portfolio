@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ch 01 – Feature Detection & Matching · casualSfM</title>
+  <title>Ch 01 — Feature Detection & Matching · casualSfM</title>
   <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
+
+  <!-- KaTeX for real typeset math -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
   <link rel="stylesheet" href="../../assets/css/base.css">
   <link rel="stylesheet" href="../../assets/css/components.css">
-  <link rel="stylesheet" href="../../assets/css/animations.css">
   <link rel="stylesheet" href="../../assets/css/terminal.css">
-  <link rel="stylesheet" href="../../assets/css/chapter.css">
-  <style>
-    #progress-bar { top: 0; z-index: 200; }
-  </style>
+  <link rel="stylesheet" href="../../assets/css/blog-chapter-v2.css">
 </head>
-<body class="font-sans">
+<body>
   <div id="progress-bar"></div>
 
   <nav class="site-nav">
@@ -34,195 +35,262 @@
       </div>
       <nav class="site-nav__links">
         <a href="../../index.html"    class="nav-link">Home</a>
-        <a href="../../projects.html"      class="nav-link">Projects</a>
-        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
+        <a href="../../projects.html" class="nav-link">Projects</a>
+        <a href="../index.html"       class="nav-link nav-link--blog">Blog</a>
         <a href="../../index.html#contact" class="nav-link">Contact</a>
       </nav>
     </div>
   </nav>
 
-  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+  <!-- ===== chapter ===== -->
+  <article class="ch">
 
-    <div class="mb-8 fade-up">
+    <header class="ch-head">
       <div class="breadcrumb">
         <a href="../index.html">Build Log</a><span class="sep">/</span>
         <span>casualSfM</span><span class="sep">/</span>
         <span class="current">Ch 01</span>
       </div>
-      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+      <div class="ch-kicker">
         <span class="badge badge--warm">Series 01 · Ch 01</span>
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">February 2026 · ~10 min read</span>
+        <span class="ch-meta">February 2026 · 10 min read</span>
       </div>
-      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
-        Feature Detection &amp; Matching<br>SIFT, Descriptors &amp; the Ratio Test
-      </h1>
-      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
-        SfM starts by finding pixels in two photos that show the same physical point. This chapter covers
-        how SIFT detects and describes those pixels, and how the ratio test filters the resulting matches.
-        Source: <code>features.py</code>.
+      <h1 class="ch-title">Feature Detection &amp; Matching</h1>
+      <p class="ch-sub">SIFT keypoints, the 128-dimensional descriptor, and Lowe's ratio test.</p>
+      <p class="ch-dek">
+        Structure from Motion begins with a simple question: which pixels in two
+        photographs show the same point in the world? This chapter answers it.
+        We find distinctive points with SIFT, describe each one as a vector,
+        match those vectors between images, and throw away the matches we can't
+        trust. Source: <code>features.py</code>.
       </p>
-    </div>
+    </header>
 
-    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
-      <article class="prose" style="flex:1; min-width:0;">
+    <div class="ch-body">
 
-        <h2 id="pipeline">The Pipeline at a Glance</h2>
-        <p>casualSfM is a two-view reconstruction pipeline with four stages. This chapter is stage 1.</p>
-        <pre>images
-  → [Ch 01] feature detection & matching   ← you are here
-  → [Ch 02] fundamental matrix + RANSAC
-  → [Ch 03] pose recovery + triangulation
-  → [Ch 04] evaluation + visualisation</pre>
-        <p>
-          All stages are independent modules. The output of stage 1 is two NumPy arrays of
-          pixel coordinates (one per image) of shape <code>(K, 2)</code> float32.
-        </p>
+      <aside class="ch-aside">
+        <p class="aside-label">On this page</p>
+        <nav class="toc">
+          <a href="#pipeline"   class="toc-link">The pipeline</a>
+          <a href="#detection"  class="toc-link">Finding keypoints</a>
+          <a href="#descriptor" class="toc-link">The descriptor</a>
+          <a href="#matching"   class="toc-link">Matching</a>
+          <a href="#ratio"      class="toc-link">The ratio test</a>
+          <a href="#class"      class="toc-link">Full implementation</a>
+          <a href="#pitfalls"   class="toc-link">Pitfalls</a>
+          <a href="#next"       class="toc-link">What's next</a>
+        </nav>
+        <div class="aside-series">
+          <p class="aside-label">Series</p>
+          <a class="series-item series-item--active"><span class="dot"></span>01 · Features</a>
+          <a href="ch2.html" class="series-item"><span class="dot"></span>02 · Fundamental Matrix</a>
+          <a href="ch3.html" class="series-item"><span class="dot"></span>03 · Triangulation</a>
+          <a href="ch4.html" class="series-item"><span class="dot"></span>04 · Evaluation</a>
+        </div>
+      </aside>
 
-        <h2 id="sift-detection">SIFT Detection: Finding Keypoints</h2>
-        <p>
-          SIFT (Lowe, 2004) finds blob-like structures by looking for extrema in the
-          <strong>Difference of Gaussians</strong> (DoG) scale space. At each scale σ:
-        </p>
-        <div class="math-code">
-          <div>
-            <p class="label">Math</p>
-            <pre>D(x, y, σ) = ( G(x, y, kσ) − G(x, y, σ) ) ∗ I(x, y)
+      <div class="ch-prose">
 
-G(x, y, σ) = (1/2πσ²) · exp(−(x²+y²)/2σ²)
+        <section id="pipeline">
+          <h2>The pipeline</h2>
+          <p>
+            casualSfM turns two photographs into a small 3D point cloud. It runs
+            in four stages, and each stage is an independent module. This chapter
+            is stage one.
+          </p>
+          <figure class="wide diagram">
+            <div class="flow">
+              <span class="flow-step flow-step--active">images in</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step flow-step--active">01 · features</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">02 · fundamental matrix</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">03 · triangulation</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">04 · evaluation</span>
+            </div>
+          </figure>
+          <p>
+            The job of stage one is to produce two arrays of pixel coordinates,
+            one per image, of shape <code>(K, 2)</code>. Row <code>k</code> in the
+            first array and row <code>k</code> in the second point to the same
+            physical feature, seen from two camera positions. Everything
+            downstream is built on these correspondences.
+          </p>
+        </section>
 
-Keypoint candidate: local extremum of D
-in a 3×3×3 neighbourhood (x, y, scale)</pre>
-          </div>
-          <div>
-            <p class="label">Code</p>
-            <pre>sift = cv.SIFT_create()
+        <section id="detection">
+          <h2>Finding keypoints</h2>
+          <p>
+            We need points the algorithm can find again in a second photo, even
+            when the camera has moved and the lighting has shifted. Corners and
+            blobs work well for this. Flat walls and straight edges do not, because
+            they look the same as you slide along them.
+          </p>
+          <p>
+            SIFT (Lowe, 2004) finds blob-like points by building a
+            <strong>scale space</strong>: it blurs the image with Gaussians of
+            increasing width and subtracts neighbouring blur levels. This
+            difference-of-Gaussians response peaks wherever a blob sits at a
+            matching size, so a peak locates a feature in both position and scale.
+          </p>
+          <div class="wide math-figure">
+            <div class="math-figure__math">
+              <p class="pane-label">The math</p>
+              <p>A Gaussian blur at width <span class="m">\sigma</span>:</p>
+              <div class="m-block">G(x,y,\sigma) = \frac{1}{2\pi\sigma^2}\, \exp\!\left(-\frac{x^2+y^2}{2\sigma^2}\right)</div>
+              <p>Subtract two nearby blur levels to get the response we search:</p>
+              <div class="m-block">D(x,y,\sigma) = \big(G(x,y,k\sigma) - G(x,y,\sigma)\big) * I(x,y)</div>
+              <p>A keypoint is a local maximum or minimum of <span class="m">D</span> across a <span class="m">3\times3\times3</span> neighbourhood in space and scale.</p>
+            </div>
+            <div class="math-figure__code">
+              <p class="pane-label">The code</p>
+              <pre><code>sift = cv.SIFT_create()
 
 kp1, desc1 = sift.detectAndCompute(img1, None)
 kp2, desc2 = sift.detectAndCompute(img2, None)
 
-# kp:   list of cv.KeyPoint objects
-#        .pt    → (x, y) pixel position
-#        .size  → detected scale
-#        .angle → dominant orientation
-# desc: float32 array, shape (N, 128)</pre>
+# kp:   list of cv.KeyPoint
+#   .pt    -> (x, y) pixel location
+#   .size  -> detected scale
+#   .angle -> dominant orientation
+# desc: float32 array, shape (N, 128)</code></pre>
+            </div>
           </div>
-        </div>
-        <p>
-          Keypoints are refined to sub-pixel precision by fitting a 3D quadratic to the
-          DoG extremum. Weak-contrast candidates are discarded via a contrast threshold;
-          edge-like responses are discarded via the ratio of principal curvatures.
-        </p>
+          <p>
+            OpenCV refines each peak to sub-pixel accuracy, then discards two kinds
+            of weak detections: low-contrast points that are probably noise, and
+            points that lie along an edge rather than on a true corner.
+          </p>
+        </section>
 
-        <h2 id="sift-descriptor">SIFT Descriptor: 128-D Fingerprint</h2>
-        <p>
-          Around each keypoint a 16×16 patch is extracted, aligned to the keypoint's
-          dominant gradient orientation. The patch is divided into a 4×4 grid of sub-regions;
-          each sub-region contributes an 8-bin gradient histogram.
-        </p>
-        <div class="math-code">
-          <div>
-            <p class="label">Math</p>
-            <pre>Patch: 16×16 px, rotated to keypoint orientation
-Grid:  4×4 cells, each 4×4 px
-Bins:  8 gradient orientations per cell
+        <section id="descriptor">
+          <h2>The descriptor</h2>
+          <p>
+            A location alone isn't enough to match a point. We also need a
+            <em>fingerprint</em>: a compact summary of the pixels around the
+            keypoint that stays stable when the image is rotated or relit.
+          </p>
+          <p>
+            SIFT builds this from gradients. It takes a 16×16 patch around the
+            keypoint, rotates the patch to the keypoint's dominant gradient
+            direction (which is what buys rotation invariance), splits it into a
+            4×4 grid of cells, and builds an 8-bin histogram of gradient directions
+            in each cell.
+          </p>
+          <div class="wide math-figure">
+            <div class="math-figure__math">
+              <p class="pane-label">The math</p>
+              <p>Stacking every cell histogram gives the descriptor length:</p>
+              <div class="m-block">\underbrace{4 \times 4}_{\text{cells}} \times \underbrace{8}_{\text{bins}} = 128</div>
+              <p>It is then normalised so brightness changes don't matter:</p>
+              <div class="m-block">\mathbf{d} \leftarrow \frac{\mathbf{d}}{\lVert \mathbf{d} \rVert_2}, \quad \mathbf{d} \leftarrow \min(\mathbf{d},\,0.2), \quad \mathbf{d} \leftarrow \frac{\mathbf{d}}{\lVert \mathbf{d} \rVert_2}</div>
+              <p>Clamping at <span class="m">0.2</span> stops any single strong gradient from dominating the vector.</p>
+            </div>
+            <div class="math-figure__code">
+              <p class="pane-label">The code</p>
+              <pre><code># detectAndCompute already did this:
+# detection, orientation, and the
+# descriptor in one OpenCV call.
 
-Descriptor: 4 × 4 × 8 = 128 floats
+desc1.shape   # -> (N, 128)
+desc1.dtype   # -> float32
+# each row has unit length (~1.0)
 
-Post-processing:
-  d ← d / ‖d‖₂           (unit norm)
-  d ← clip(d, 0, 0.2)    (clamp large values)
-  d ← d / ‖d‖₂           (renormalise)</pre>
+# The vector encodes gradient
+# structure, not raw intensities,
+# so it survives lighting changes.</code></pre>
+            </div>
           </div>
-          <div>
-            <p class="label">Code</p>
-            <pre># detectAndCompute handles all of this:
-# detection + orientation + descriptor
-# in a single OpenCV call.
+          <p>
+            The result is one 128-number vector per keypoint. Two photos of the
+            same scene produce two clouds of these vectors, and matching becomes a
+            nearest-neighbour search between them.
+          </p>
+        </section>
 
-# desc1.shape → (N, 128)
-# dtype       → float32
-# norm        → ≈ 1.0 (unit length)
-
-# The 128-D vector encodes gradient
-# structure, not raw pixel intensities,
-# making it robust to lighting change.</pre>
-          </div>
-        </div>
-
-        <h2 id="matching">Brute-Force Nearest Neighbour</h2>
-        <p>
-          For each descriptor in image 1, find the two closest descriptors in image 2 by
-          Euclidean distance. With N ≈ 8,000 keypoints per image this is ~8k × 8k × 128
-          multiplications, feasible via BLAS in OpenCV's BFMatcher.
-        </p>
-        <div class="math-code">
-          <div>
-            <p class="label">Math</p>
-            <pre>d(a, b) = ‖a − b‖₂ = √Σᵢ(aᵢ − bᵢ)²
-
-For each desc in image 1:
-  m = argmin   d(desc, desc2[j])
-       j
-  n = argmin   d(desc, desc2[j])
-       j ≠ m
-# m → best match, n → second-best</pre>
-          </div>
-          <div>
-            <p class="label">Code</p>
-            <pre>bf = cv.BFMatcher()   # L2 norm (for SIFT floats)
-                      # use NORM_HAMMING for ORB
+        <section id="matching">
+          <h2>Matching</h2>
+          <p>
+            For each descriptor in the first image, we find its closest descriptor
+            in the second by ordinary Euclidean distance. We actually keep the two
+            closest, because the runner-up is what tells us whether the best match
+            can be trusted.
+          </p>
+          <div class="wide math-figure">
+            <div class="math-figure__math">
+              <p class="pane-label">The math</p>
+              <p>Distance between two descriptors:</p>
+              <div class="m-block">d(\mathbf{a}, \mathbf{b}) = \lVert \mathbf{a} - \mathbf{b} \rVert_2 = \sqrt{\sum_{i=1}^{128} (a_i - b_i)^2}</div>
+              <p>For each descriptor in image 1, take the two nearest in image 2:</p>
+              <div class="m-block">m = \arg\min_{j} d(\mathbf{a}, \mathbf{b}_j), \qquad n = \arg\min_{j \neq m} d(\mathbf{a}, \mathbf{b}_j)</div>
+              <p><span class="m">m</span> is the best match, <span class="m">n</span> the second best.</p>
+            </div>
+            <div class="math-figure__code">
+              <p class="pane-label">The code</p>
+              <pre><code>bf = cv.BFMatcher()   # L2 norm, for
+                      # SIFT's float vectors
 
 raw = bf.knnMatch(desc1, desc2, k=2)
-# raw: list of (DMatch m, DMatch n)
-# m.distance → d(best)
-# n.distance → d(second-best)</pre>
+# raw: list of (m, n) pairs
+#   m.distance -> nearest
+#   n.distance -> second nearest
+
+# ~8000 keypoints per image is
+# feasible: the heavy lifting runs
+# in optimised BLAS under the hood.</code></pre>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <h2 id="ratio-test">Lowe's Ratio Test</h2>
-        <p>
-          A match is ambiguous if the second-best descriptor is nearly as close as the best.
-          The ratio test discards those ambiguous cases.
-        </p>
-        <div class="math-code">
-          <div>
-            <p class="label">Math</p>
-            <pre>Keep match m iff:
-
-  d(m) / d(n) &lt; τ,   τ = 0.75
-
-Interpretation:
-  If best match is clearly closer than
-  second-best → distinctive → keep.
-  If they are nearly equal → ambiguous
-  (repetitive texture) → discard.</pre>
-          </div>
-          <div>
-            <p class="label">Code</p>
-            <pre>good = [
+        <section id="ratio">
+          <h2>The ratio test</h2>
+          <p>
+            Here's the key idea of the whole chapter. A match is trustworthy when
+            the best candidate is clearly closer than the second best. If the two
+            nearest descriptors are almost the same distance away, the point is
+            ambiguous (think repeated brickwork or tiled floors) and we drop it.
+          </p>
+          <div class="wide math-figure">
+            <div class="math-figure__math">
+              <p class="pane-label">The math</p>
+              <p>Keep a match only when:</p>
+              <div class="m-block">\frac{d(m)}{d(n)} < \tau, \qquad \tau = 0.75</div>
+              <p>
+                Small ratio means the best match stands out and we trust it.
+                Ratio near 1 means best and second-best are tied, so we discard it.
+              </p>
+            </div>
+            <div class="math-figure__code">
+              <p class="pane-label">The code</p>
+              <pre><code>good = [
     m for m, n in raw
-    if m.distance &lt; 0.75 * n.distance
+    if m.distance < 0.75 * n.distance
 ]
 
-# Extract pixel coordinates
+# pull out the surviving coordinates
 pts1 = np.float32(
     [kp1[m.queryIdx].pt for m in good])
 pts2 = np.float32(
     [kp2[m.trainIdx].pt for m in good])
-
-# Output: float32 arrays, shape (K, 2)</pre>
+# -> two (K, 2) float arrays</code></pre>
+            </div>
           </div>
-        </div>
+          <div class="callout callout--insight">
+            <span class="callout-label">Why it works</span>
+            The ratio test is scale-free: it cares only about the relative gap
+            between best and second-best, never the absolute distances. Lowe
+            reported it removes about 90% of false matches while keeping 95% of
+            correct ones.
+          </div>
+        </section>
 
-        <div class="callout callout--insight">
-          <span class="callout-label">Key insight</span>
-          The ratio test is scale-free. It doesn't matter how large the distances are in absolute terms,
-          only their relative separation. Lowe reported 90% of false matches eliminated at τ = 0.8
-          with 95% of correct matches retained.
-        </div>
-
-        <h2 id="full-class">The Full Class</h2>
-        <pre>class FeatureMatcher:
+        <section id="class">
+          <h2>Full implementation</h2>
+          <p>The whole stage is small enough to read in one screen.</p>
+          <figure class="wide">
+            <pre class="codeblock"><code>class FeatureMatcher:
     def __init__(self, ratio_threshold: float = 0.75):
         self.sift = cv.SIFT_create()
         self.bf   = cv.BFMatcher()        # L2 norm by default
@@ -237,115 +305,119 @@ pts2 = np.float32(
 
         raw  = self.bf.knnMatch(desc1, desc2, k=2)
         good = [m for m, n in raw
-                if m.distance &lt; self.ratio_threshold * n.distance]
+                if m.distance < self.ratio_threshold * n.distance]
 
         pts1 = np.float32([kp1[m.queryIdx].pt for m in good])
         pts2 = np.float32([kp2[m.trainIdx].pt for m in good])
-        return pts1, pts2</pre>
-
-        <div class="callout callout--note">
-          <span class="callout-label">Numbers on our fountain sequence</span>
-          SIFT detects ~8,000 keypoints per image. knnMatch returns ~4,000 raw pairs.
-          After the ratio test at τ = 0.75, roughly <strong>1,500–2,000 survive</strong>.
-          After RANSAC in Ch 02, ~900 are epipolar inliers. After cheirality in Ch 03,
-          the final count is <strong>701 triangulated points</strong>.
-        </div>
-
-        <h2 id="pitfalls">Pitfalls</h2>
-        <p>
-          <strong>Load in grayscale.</strong> Passing a 3-channel BGR image to
-          <code>detectAndCompute</code> causes an internal format error. Always use
-          <code>cv.IMREAD_GRAYSCALE</code>.
-        </p>
-        <p>
-          <strong>L2 vs Hamming.</strong> <code>BFMatcher()</code> defaults to L2, correct
-          for SIFT's float descriptors. ORB produces binary descriptors, so use
-          <code>BFMatcher(cv.NORM_HAMMING)</code> instead. Mixing them gives nonsensical distances.
-        </p>
-        <p>
-          <strong>Ratio threshold is scene-dependent.</strong> 0.75 works well on our richly
-          textured fountain. On repetitive scenes (uniform brickwork, tiled floors) lower τ
-          to 0.6 to avoid ambiguous matches, accepting fewer total correspondences.
-        </p>
-        <p>
-          <strong>These matches still contain outliers.</strong> The ratio test is permissive
-          by design. RANSAC in Ch 02 is what actually rejects wrong correspondences.
-        </p>
-
-        <h2 id="next">What's Next</h2>
-        <p>
-          Ch 02 takes <code>pts1</code> and <code>pts2</code> and estimates the Fundamental Matrix
-          F (the geometric constraint between the two camera positions) using a hand-rolled
-          normalised 8-point algorithm wrapped in RANSAC.
-        </p>
-
-        <div style="display:flex; justify-content:flex-end; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
-          <a href="ch2.html" class="chapter-nav-btn">
-            Chapter 02: The Fundamental Matrix &amp; RANSAC
-            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
-          </a>
-        </div>
-
-      </article>
-
-      <!-- Sidebar TOC -->
-      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
-        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
-        <nav style="display:flex; flex-direction:column; gap:1px;">
-          <a href="#pipeline"         class="toc-link">Pipeline overview</a>
-          <a href="#sift-detection"   class="toc-link">SIFT detection</a>
-          <a href="#sift-descriptor"  class="toc-link">128-D descriptor</a>
-          <a href="#matching"         class="toc-link">BF matching</a>
-          <a href="#ratio-test"       class="toc-link">Ratio test</a>
-          <a href="#full-class"       class="toc-link">Full class</a>
-          <a href="#pitfalls"         class="toc-link">Pitfalls</a>
-          <a href="#next"             class="toc-link">What's next</a>
-        </nav>
-
-        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
-          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
-          <div class="ch-series-nav">
-            <div class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label ch-series-label--active">Ch 01 · Features</span>
-            </div>
-            <a href="ch2.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
-            </a>
-            <a href="ch3.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 03 · Triangulation</span>
-            </a>
-            <a href="ch4.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 04 · Evaluation</span>
-            </a>
+        return pts1, pts2</code></pre>
+          </figure>
+          <div class="callout callout--note">
+            <span class="callout-label">Numbers from the fountain sequence</span>
+            SIFT finds about 8,000 keypoints per image. Matching returns roughly
+            4,000 raw pairs. The ratio test at <span class="m">\tau = 0.75</span>
+            leaves <strong>1,500 to 2,000</strong>. RANSAC in Ch 02 cuts that to
+            about 900 geometric inliers, and the cheirality check in Ch 03 lands
+            on a final <strong>701 triangulated points</strong>.
           </div>
-        </div>
-      </aside>
-    </div>
+        </section>
 
-    <footer class="site-footer">
+        <section id="pitfalls">
+          <h2>Pitfalls</h2>
+          <p>
+            <strong>Load images in grayscale.</strong> Passing a 3-channel colour
+            image to <code>detectAndCompute</code> triggers an internal format
+            error. Always read with <code>cv.IMREAD_GRAYSCALE</code>.
+          </p>
+          <p>
+            <strong>Match the norm to the descriptor.</strong> SIFT produces float
+            vectors, so the L2 norm is correct. ORB produces binary vectors and
+            needs <code>BFMatcher(cv.NORM_HAMMING)</code>. Mixing them gives
+            meaningless distances.
+          </p>
+          <p>
+            <strong>The threshold depends on the scene.</strong> 0.75 suits our
+            richly textured fountain. On repetitive surfaces, lower it to around
+            0.6 to reject ambiguous matches, at the cost of keeping fewer overall.
+          </p>
+          <p>
+            <strong>These matches still contain outliers.</strong> The ratio test
+            is deliberately permissive. Rejecting genuinely wrong correspondences
+            is RANSAC's job, in the next chapter.
+          </p>
+        </section>
+
+        <section id="next">
+          <h2>What's next</h2>
+          <p>
+            Chapter 02 takes <code>pts1</code> and <code>pts2</code> and recovers
+            the <strong>fundamental matrix</strong>, the geometric relationship
+            between the two camera viewpoints, using a hand-rolled normalised
+            8-point algorithm wrapped in RANSAC.
+          </p>
+          <a href="ch2.html" class="next-link">
+            Chapter 02 · The Fundamental Matrix &amp; RANSAC
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </section>
+
+      </div><!-- /ch-prose -->
+    </div><!-- /ch-body -->
+
+    <footer class="ch-foot">
       © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
     </footer>
-  </main>
+  </article>
 
   <script src="../../assets/js/theme.js"></script>
-  <script src="../../assets/js/scroll.js"></script>
   <script>
-    // TOC scroll-spy
-    (function () {
-      var links    = document.querySelectorAll('.toc-link');
-      var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
-      if (!links.length || !headings.length) return;
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
-          if (link) link.classList.toggle('is-active', e.isIntersecting);
+    function renderMath(){
+      if (!window.katex) return;
+      document.querySelectorAll('.m-block').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:true, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+      document.querySelectorAll('.m').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:false, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+    }
+    if (document.readyState === 'complete') renderMath();
+    window.addEventListener('load', renderMath);
+
+    (function(){
+      var bar = document.getElementById('progress-bar');
+      function upd(){
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        bar.style.width = max>0 ? (h.scrollTop/max*100)+'%' : '0%';
+      }
+      window.addEventListener('scroll', upd, {passive:true});
+      window.addEventListener('resize', upd); upd();
+    })();
+
+    (function(){
+      var headings = Array.from(document.querySelectorAll('.ch-prose section[id]'));
+      function linkFor(id){ return document.querySelector('.toc-link[href="#'+id+'"]'); }
+      var obs = new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          var l = linkFor(e.target.id);
+          if (l) l.classList.toggle('is-active', e.isIntersecting);
         });
-      }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
-      headings.forEach(function (h) { obs.observe(h); });
+      }, { rootMargin:'-72px 0px -60% 0px', threshold:0 });
+      headings.forEach(function(h){ obs.observe(h); });
+      function trail(){
+        headings.forEach(function(h){
+          var l = linkFor(h.id); if(!l) return;
+          l.classList.toggle('is-registered', h.getBoundingClientRect().top < 90);
+        });
+      }
+      var t=false;
+      window.addEventListener('scroll', function(){
+        if(!t){ requestAnimationFrame(function(){ trail(); t=false; }); t=true; }
+      }, {passive:true});
+      trail();
     })();
   </script>
 </body>

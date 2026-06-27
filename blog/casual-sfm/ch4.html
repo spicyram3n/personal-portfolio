@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../../assets/css/animations.css">
   <link rel="stylesheet" href="../../assets/css/terminal.css">
   <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <link rel="stylesheet" href="../../assets/css/blog-reading.css">
   <style>
     #progress-bar { top: 0; z-index: 200; }
   </style>
@@ -53,10 +54,10 @@
         <span class="badge badge--warm">Series 01 · Ch 04</span>
         <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">April 2026 · ~10 min read</span>
       </div>
-      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+      <h1 class="chapter-title" style="color:var(--text);">
         Evaluation &amp; Visualisation<br>Reprojection Error &amp; Rerun
       </h1>
-      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+      <p class="chapter-dek">
         The reconstruction is done. This chapter asks: how good is it? Reprojection error
         is the primary metric. It measures how consistently the estimated geometry explains
         the original image observations. Source: <code>evaluate.py</code>, <code>visualize.py</code>.
@@ -381,13 +382,28 @@ for i, cam in enumerate(reconstruction.cameras):
       var links    = document.querySelectorAll('.toc-link');
       var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
       if (!links.length || !headings.length) return;
+      function linkFor(id){ return document.querySelector('.toc-link[href="#' + id + '"]'); }
       var obs = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          var link = linkFor(e.target.id);
           if (link) link.classList.toggle('is-active', e.isIntersecting);
         });
       }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
       headings.forEach(function (h) { obs.observe(h); });
+      function updateRegistered(){
+        var line = 80;
+        headings.forEach(function(h){
+          var link = linkFor(h.id);
+          if (!link) return;
+          if (h.getBoundingClientRect().top < line) link.classList.add('is-registered');
+          else link.classList.remove('is-registered');
+        });
+      }
+      var tick=false;
+      window.addEventListener('scroll', function(){
+        if(!tick){ requestAnimationFrame(function(){ updateRegistered(); tick=false; }); tick=true; }
+      }, { passive:true });
+      updateRegistered();
     })();
   </script>
 </body>

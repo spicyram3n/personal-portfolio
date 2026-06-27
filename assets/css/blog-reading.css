@@ -1,0 +1,218 @@
+/* ============================================================
+   blog-reading.css — reading-first "lab notebook" treatment
+   Loaded LAST on blog pages so it overrides components.css.
+   Goal: calm, legible long-form. Serif body, real reading size,
+   quiet headings, instrument-style code/math. One signature:
+   the progress bar reads as a reconstruction scan converging,
+   and the sidebar TOC marks sections "registered" as you pass.
+   ============================================================ */
+
+/* ── layout fallback: don't depend on the Tailwind CDN for centering ── */
+main.max-w-4xl {
+  max-width: 52rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 7rem 1.5rem 6rem;
+}
+
+/* ── reading column: serif body, generous measure ── */
+.prose {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  max-width: 68ch;
+}
+
+.prose p {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.125rem;          /* ~18px */
+  line-height: 1.75;
+  font-weight: 400;
+  color: var(--text);
+  opacity: 0.92;
+  margin-bottom: 1.4rem;
+  letter-spacing: 0;
+}
+
+.prose strong { color: var(--text); font-weight: 600; opacity: 1; }
+.prose em { font-style: italic; }
+
+/* links: quiet underline, accent on hover — not loud in body text */
+.prose a {
+  color: var(--text);
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 0.5px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.prose a:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── headings: real section titles, not code comments ── */
+.prose h2 {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  text-transform: none;
+}
+/* replace the "//" comment prefix with a quiet section index rule */
+.prose h2::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.7;
+  margin-bottom: 0.85rem;
+}
+
+.prose h3 {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: var(--text);
+  margin-top: 2rem;
+  margin-bottom: 0.6rem;
+}
+.prose h3::before { content: none; }
+
+/* ── inline code: legible against serif prose ── */
+.prose code:not(pre code) {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.86em;
+  background: var(--inline-code-bg);
+  color: var(--inline-code-text);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ── standalone code blocks: instrument output, left phosphor rule ── */
+.prose > pre,
+.prose pre {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  background: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 1rem 1.2rem;
+  margin: 1.6rem 0;
+  overflow-x: auto;
+}
+
+/* ── math|code dual pane: keep the side-by-side, calm the chrome ── */
+.math-code {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.8rem 0;
+}
+.math-code > div > p.label {
+  letter-spacing: 0.16em;
+  background: transparent;
+}
+.math-code > div > pre {
+  font-size: 0.78rem !important;
+  line-height: 1.7 !important;
+}
+
+/* ── callouts: a touch more breathing room, serif text ── */
+.callout {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 400;
+  padding: 1.1rem 1.3rem;
+  margin: 2rem 0;
+  border-radius: 0 5px 5px 0;
+}
+.callout strong { font-weight: 600; }
+
+/* ── lead paragraph under the title (dek) ── */
+.chapter-dek {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 1.18rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text);
+  opacity: 0.78;
+  max-width: 60ch;
+  font-style: italic;
+}
+.chapter-dek code { font-style: normal; }
+
+/* ── chapter title: larger, serif, confident ── */
+.chapter-title {
+  font-family: 'IBM Plex Serif', Georgia, serif !important;
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 1rem !important;
+}
+
+/* ── widen the reading container a little, more side air ── */
+main.max-w-4xl { max-width: 52rem; }
+
+/* ── signature: progress bar as a reconstruction scan ── */
+#progress-bar {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2, #5fd9ff));
+  box-shadow: 0 0 10px var(--accent);
+  height: 2px;
+}
+
+/* ── TOC: mark sections "registered" as you scroll past ── */
+.toc-link {
+  font-family: 'IBM Plex Mono', monospace;
+  position: relative;
+  padding-left: 14px;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.toc-link::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--border-mid);
+  background: transparent;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.toc-link.is-active { color: var(--text); }
+.toc-link.is-active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+.toc-link.is-registered:not(.is-active) { color: var(--text-dim); }
+.toc-link.is-registered:not(.is-active)::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+/* ── blog index: titles in serif, calmer rows ── */
+.ch-row-title {
+  font-family: 'IBM Plex Serif', Georgia, serif !important;
+  font-size: 1.02rem !important;
+  font-weight: 600 !important;
+}
+.ch-row-sub {
+  font-family: 'IBM Plex Serif', Georgia, serif !important;
+  font-size: 0.86rem !important;
+}
+
+/* respect reduced motion: progress bar glow is static, fine */
+@media (prefers-reduced-motion: reduce) {
+  #progress-bar { box-shadow: none; }
+}

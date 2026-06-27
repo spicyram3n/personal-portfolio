@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../../assets/css/animations.css">
   <link rel="stylesheet" href="../../assets/css/terminal.css">
   <link rel="stylesheet" href="../../assets/css/chapter.css">
+  <link rel="stylesheet" href="../../assets/css/blog-reading.css">
   <style>
     #progress-bar { top: 0; z-index: 200; }
   </style>
@@ -53,10 +54,10 @@
         <span class="badge badge--warm">Series 01 · Ch 02</span>
         <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">March 2026 · ~14 min read</span>
       </div>
-      <h1 style="font-family:'IBM Plex Serif',Georgia,serif; font-size:clamp(1.4rem,3.5vw,1.8rem); font-weight:600; line-height:1.2; letter-spacing:-.015em; color:var(--text); margin-bottom:.85rem;">
+      <h1 class="chapter-title" style="color:var(--text);">
         The Fundamental Matrix<br>Normalised 8-Point Algorithm &amp; RANSAC
       </h1>
-      <p style="font-size:14px; color:var(--text-dim); font-weight:300; max-width:520px; line-height:1.8;">
+      <p class="chapter-dek">
         Given ~1,500 noisy pixel matches, find the camera geometry. This chapter covers the epipolar
         constraint, Hartley normalisation, SVD-based 8-point algorithm, and adaptive RANSAC, each
         formula shown alongside the code that implements it. Source: <code>geometry.py</code>.
@@ -374,13 +375,28 @@ if best_mask.sum() >= 8:
       var links    = document.querySelectorAll('.toc-link');
       var headings = Array.from(document.querySelectorAll('article h2[id], article h3[id]'));
       if (!links.length || !headings.length) return;
+      function linkFor(id){ return document.querySelector('.toc-link[href="#' + id + '"]'); }
       var obs = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          var link = document.querySelector('.toc-link[href="#' + e.target.id + '"]');
+          var link = linkFor(e.target.id);
           if (link) link.classList.toggle('is-active', e.isIntersecting);
         });
       }, { rootMargin: '-64px 0px -55% 0px', threshold: 0 });
       headings.forEach(function (h) { obs.observe(h); });
+      function updateRegistered(){
+        var line = 80;
+        headings.forEach(function(h){
+          var link = linkFor(h.id);
+          if (!link) return;
+          if (h.getBoundingClientRect().top < line) link.classList.add('is-registered');
+          else link.classList.remove('is-registered');
+        });
+      }
+      var tick=false;
+      window.addEventListener('scroll', function(){
+        if(!tick){ requestAnimationFrame(function(){ updateRegistered(); tick=false; }); tick=true; }
+      }, { passive:true });
+      updateRegistered();
     })();
   </script>
 </body>
