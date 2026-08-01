@@ -2,18 +2,19 @@
 
 (function () {
   /* ── theme ──────────────────────────────────────────────────────────── */
-  function label() {
-    var d = document.documentElement.getAttribute('data-theme') === 'dark';
-    return d ? 'light mode' : 'dark mode';
-  }
   var btn = document.getElementById('theme-toggle');
   if (btn) {
-    btn.textContent = label();
+    var sync = function () {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      btn.setAttribute('aria-checked', dark ? 'true' : 'false');
+      btn.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+    sync();
     btn.addEventListener('click', function () {
       var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem('ps-theme', next); } catch (e) {}
-      btn.textContent = label();
+      sync();
     });
   }
 

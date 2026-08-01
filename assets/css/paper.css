@@ -157,12 +157,45 @@ body { width: 1140px; margin: 0 auto; padding: 30px 0; }
 }
 .masthead .aside-note a { color: var(--dimmer); }
 
+/* the filter pills on the projects page */
 button.tog {
   background: none; border: none; border-bottom: 1px solid transparent;
   color: var(--dimmer); cursor: pointer; font-size: .82em; padding: 0;
 }
 button.tog:hover { color: var(--text); border-bottom-color: currentColor; }
 button.tog.on { color: var(--text); font-weight: 600; }
+
+/* ── theme switch: a track the thumb slides along ── */
+.theme-switch {
+  display: block; margin: 16px 0 0 auto;
+  background: none; border: 0; padding: 0; cursor: pointer; line-height: 0;
+}
+.switch-track {
+  display: flex; align-items: center; width: 52px; height: 28px; padding: 2px;
+  border: 1px solid var(--hair); border-radius: 999px; background: var(--stripe);
+  transition: background .2s, border-color .2s;
+}
+.switch-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border: 1px solid var(--hair); color: var(--text);
+  box-shadow: 0 1px 3px var(--shadow-soft);
+  transform: translateX(0);
+  transition: transform .22s cubic-bezier(.3,.8,.3,1);
+}
+.switch-thumb svg { width: 13px; height: 13px; display: block; }
+
+/* light: thumb parked left showing the sun. dark: slid right, showing the moon.
+   Scoped to .switch-thumb so these outrank the `.switch-thumb svg` rule above. */
+.switch-thumb .ico-moon { display: none; }
+html[data-theme="dark"] .switch-thumb { transform: translateX(24px); }
+html[data-theme="dark"] .switch-thumb .ico-sun  { display: none; }
+html[data-theme="dark"] .switch-thumb .ico-moon { display: block; }
+
+.theme-switch:hover .switch-track { border-color: var(--hair-strong); }
+.theme-switch:focus-visible .switch-track { outline: 2px solid var(--text); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) { .switch-thumb { transition: none; } }
 
 /* project entries keep their heading close to their metadata */
 .entry { margin-bottom: 2.4em; }
@@ -392,6 +425,7 @@ footer .copyright a { border-bottom: 1px solid; }
   .masthead h1, .masthead .tagline { text-align: center; }
   .masthead .portrait { margin: 22px auto; }
   .masthead .aside-note { text-align: center; margin: 20px 0 0; }
+  .theme-switch { margin: 16px auto 0; }
 
   .main { width: auto; padding: 40px 10px; margin-left: 0; min-height: auto; }
   .main::before { content: none; }
