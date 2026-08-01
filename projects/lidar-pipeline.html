@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geospatial LiDAR Pipeline - Poorna Sasank Sesetti</title>
+<meta name="description" content="Streaming point-cloud processing across a 10 km Bonn corridor.">
+<script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/paper.css">
+</head>
+<body>
+
+<canvas id="cloud"></canvas>
+
+<header class="masthead">
+  <h1><a href="../index.html">Poorna Sasank Sesetti</a></h1>
+  <p class="tagline">Robotics, perception, SLAM.</p>
+
+  <img class="portrait" src="../assets/images/poorna-portrait.jpg" alt="Poorna Sasank Sesetti">
+
+  <nav class="menu">
+    <input id="menu-check" type="checkbox" hidden>
+    <label id="menu-label" for="menu-check" hidden>
+      <span class="icon close-icon">&#10005;</span>
+      <span class="icon open-icon">&#9776;</span>
+      <span class="text">Menu</span>
+    </label>
+    <ul>
+      <li><a href="../index.html">About</a></li>
+      <li><a href="../index.html#projects">Project graph</a></li>
+      <li class="active"><a href="../projects.html">All projects</a></li>
+      <li><a href="../blog/index.html">Build log</a></li>
+      <li><a href="../index.html#publications">Publications</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <p class="aside-note">
+    Bonn, Germany<br>
+    <button class="tog" id="theme-toggle">dark mode</button>
+  </p>
+</header>
+
+<article class="main">
+
+  <header class="title">
+    <h1>Geospatial LiDAR Pipeline</h1>
+    <hr>
+  </header>
+
+  <p class="detail-meta">3D · LiDAR · 2026 – present · master's project, University of Bonn<br>PDAL · Open3D · Patchwork++ · CSF · CloudCompare</p>
+
+  <p class="detail-hero"><img src="../assets/media/projects/moro-lidar-web.jpg" alt="Merged airborne and mobile LiDAR point cloud of a Bonn street corridor, coloured by height"></p>
+  <p>Airborne laser scanning gives you roofs and continuous coverage. Mobile mapping gives you façades and street furniture at much higher density. Neither is enough on its own to reconstruct a building model, and merging them across a 10 km corridor is mostly a problem of scale and of getting the heights to agree.</p>
+
+  <p>The pipeline <strong>streams</strong>. Nothing is ever fully resident in memory: PDAL reads in chunks, tiles are processed in parallel, and results are written back out incrementally. That is what makes a corridor-sized dataset tractable on hardware that is not a cluster.</p>
+
+  <p>Everything is worked in <strong>EPSG:25832</strong>, with a quasigeoid correction so that ellipsoidal heights from one sensor and orthometric heights from the other end up in the same vertical frame. Ground is separated with cloth-simulation and Patchwork++-style filtering before anything else is attempted.</p>
+
+  <p>Heavier tensor operations go through Open3D on the GPU where it helps, and the tiling is deliberately uneven so that a mixed set of machines can each take work proportional to what they can handle.</p>
+
+  <p class="note centered back-link"><a href="../projects.html">&larr; All projects</a></p>
+
+  <footer>
+    <hr>
+    <div class="copyright"><sub>&copy;
+      <a href="../index.html">Poorna Sasank Sesetti</a> 2026 |
+      <a href="https://github.com/spicyram3n/personal-portfolio">source</a>
+    </sub></div>
+  </footer>
+
+</article>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

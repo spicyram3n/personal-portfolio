@@ -1,48 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ch 02 – The Fundamental Matrix · casualSfM</title>
-  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/components.css">
-  <link rel="stylesheet" href="../../assets/css/animations.css">
-  <link rel="stylesheet" href="../../assets/css/terminal.css">
-  <link rel="stylesheet" href="../../assets/css/chapter.css">
-  <link rel="stylesheet" href="../../assets/css/blog-reading.css">
-  <style>
-    #progress-bar { top: 0; z-index: 200; }
-  </style>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="../../assets/css/blog.css">
 </head>
-<body class="font-sans">
-  <div id="progress-bar"></div>
+<body>
 
-  <nav class="site-nav">
-    <div class="site-nav__inner">
-      <div class="site-nav__left">
-        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun toggle-icon-sun"></i>
-          <div class="toggle-track"><div class="toggle-thumb"></div></div>
-          <i class="fa-solid fa-moon toggle-icon-moon"></i>
-        </button>
-      </div>
-      <nav class="site-nav__links">
-        <a href="../../index.html"    class="nav-link">Home</a>
-        <a href="../../projects.html"      class="nav-link">Projects</a>
-        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
-        <a href="../../index.html#contact" class="nav-link">Contact</a>
-      </nav>
-    </div>
-  </nav>
+  <div class="backbar">
+    <a class="backbtn" href="../../index.html">&larr; Portfolio</a>
+  </div>
 
-  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+  <article class="main">
 
     <div class="mb-8 fade-up">
       <div class="breadcrumb">
@@ -50,11 +23,11 @@
         <span>casualSfM</span><span class="sep">/</span>
         <span class="current">Ch 02</span>
       </div>
-      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+      <div class="ch-kicker">
         <span class="badge badge--warm">Series 01 · Ch 02</span>
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">March 2026 · ~14 min read</span>
+        <span class="ch-meta">March 2026 · ~14 min read</span>
       </div>
-      <h1 class="chapter-title" style="color:var(--text);">
+      <h1 class="chapter-title">
         The Fundamental Matrix<br>Normalised 8-Point Algorithm &amp; RANSAC
       </h1>
       <p class="chapter-dek">
@@ -64,30 +37,58 @@
       </p>
     </div>
 
-    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
-      <article class="prose" style="flex:1; min-width:0;">
+    <div class="ch-body">
+      <aside class="ch-aside">
+        <p class="aside-label">On this page</p>
+        <nav class="toc">
+          <a href="#epipolar"       class="toc-link">Epipolar constraint</a>
+          <a href="#eight-point"    class="toc-link">8-point algorithm</a>
+          <a href="#normalisation"  class="toc-link">Hartley normalisation</a>
+          <a href="#sed"            class="toc-link">Epipolar distance</a>
+          <a href="#ransac"         class="toc-link">RANSAC</a>
+          <a href="#pitfalls"       class="toc-link">Pitfalls</a>
+          <a href="#next"           class="toc-link">What's next</a>
+        </nav>
+
+        <div class="aside-series">
+          <p class="aside-label">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 02 · Fund. Matrix</span>
+            </div>
+            <a href="ch3.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 03 · Triangulation</span>
+            </a>
+            <a href="ch4.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 04 · Evaluation</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="ch-prose">
 
         <h2 id="epipolar">The Epipolar Constraint</h2>
         <p>
-          A 3D point P visible in both images projects to p₁ in image 1 and p₂ in image 2.
-          Even though we don't know where P is in 3D, we know that p₂ must lie on a specific
-          line in image 2, the <strong>epipolar line</strong> of p₁. The Fundamental Matrix F
-          encodes this constraint for all possible points.
+          A 3D point <span class="m">P</span> visible in both images projects to <span class="m">\mathbf{p}_1</span> in image 1
+          and <span class="m">\mathbf{p}_2</span> in image 2. Even though we don't know where <span class="m">P</span> is in 3D, we know that
+          <span class="m">\mathbf{p}_2</span> must lie on a specific line in image 2, the <strong>epipolar line</strong>
+          of <span class="m">\mathbf{p}_1</span>. The Fundamental Matrix <span class="m">F</span> encodes this constraint for all possible points.
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>For any true match (p₁, p₂):
-
-  p₂ᵀ F p₁ = 0
-
-where pᵢ = (xᵢ, yᵢ, 1)ᵀ  (homogeneous)
-
-F is 3×3, rank 2, 7 DOF
-(9 entries − 1 scale − 1 rank constraint)
-
-  F p₁   → epipolar line in image 2
-  Fᵀ p₂  → epipolar line in image 1</pre>
+            <p class="label">The math</p>
+            <p>For any true match <span class="m">(\mathbf{p}_1, \mathbf{p}_2)</span>, with points in homogeneous coordinates <span class="m">\mathbf{p}_i = (x_i, y_i, 1)^{\mathsf{T}}</span>:</p>
+            <div class="m-block">\mathbf{p}_2^{\mathsf{T}}\, F\, \mathbf{p}_1 = 0</div>
+            <p><span class="m">F</span> is <span class="m">3\times 3</span>, rank 2, and carries 7 degrees of freedom: nine entries, minus one for overall scale, minus one for the rank constraint.</p>
+            <div class="m-block">\begin{aligned} F\,\mathbf{p}_1 \;&\longrightarrow\; \text{epipolar line in image 2} \\ F^{\mathsf{T}}\mathbf{p}_2 \;&\longrightarrow\; \text{epipolar line in image 1} \end{aligned}</div>
           </div>
           <div>
             <p class="label">What this enables</p>
@@ -105,22 +106,17 @@ For an outlier (wrong match):
 
         <h2 id="eight-point">The 8-Point Algorithm</h2>
         <p>
-          Expanding <code>p₂ᵀ F p₁ = 0</code> with p₁=(u,v,1) and p₂=(u',v',1) gives
-          a linear equation in the 9 entries of F. Stack N such equations into a matrix system.
+          Expanding <span class="m">\mathbf{p}_2^{\mathsf{T}} F \mathbf{p}_1 = 0</span> with <span class="m">\mathbf{p}_1 = (u, v, 1)</span> and <span class="m">\mathbf{p}_2 = (u', v', 1)</span> gives a
+          linear equation in the 9 entries of <span class="m">F</span>. Stack <span class="m">N</span> such equations into a matrix system.
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math: one row of A per match</p>
-            <pre>aᵢ = [u'u, u'v, u', v'u, v'v, v', u, v, 1]
-
-A · vec(F) = 0,   A ∈ ℝᴺˣ⁹
-
-Solution: vec(F) = last row of Vᵀ
-where A = U Σ Vᵀ  (SVD)
-
-Enforce rank-2 on recovered F:
-  F = U diag(σ₁, σ₂, 0) Vᵀ
-  (set smallest singular value to 0)</pre>
+            <p class="label">The math</p>
+            <p>Each match contributes one row to <span class="m">A</span>:</p>
+            <div class="m-block">\mathbf{a}_i = \begin{bmatrix} u'u & u'v & u' & v'u & v'v & v' & u & v & 1 \end{bmatrix}</div>
+            <div class="m-block">A\,\operatorname{vec}(F) = \mathbf{0}, \qquad A \in \mathbb{R}^{N \times 9}</div>
+            <p>Take the SVD <span class="m">A = U\Sigma V^{\mathsf{T}}</span>; the solution is the last row of <span class="m">V^{\mathsf{T}}</span>. Then force the result back to rank 2 by zeroing its smallest singular value:</p>
+            <div class="m-block">F = U \operatorname{diag}(\sigma_1, \sigma_2, 0)\, V^{\mathsf{T}}</div>
           </div>
           <div>
             <p class="label">Code: eight_point()</p>
@@ -145,26 +141,19 @@ F = U @ np.diag(S) @ Vt</pre>
 
         <h2 id="normalisation">Hartley Normalisation: Why It's Non-Negotiable</h2>
         <p>
-          Pixel coordinates on our 3024×2016 images reach values up to ~3000. The A matrix
-          contains products like u'u ≈ 9×10⁶. SVD on such a poorly conditioned matrix is
-          dominated by floating-point rounding, so the recovered F is meaningless.
-          Normalisation maps both point sets to zero mean, √2 average distance from origin.
+          Pixel coordinates on our <span class="m">3024 \times 2016</span> images reach values up to <span class="m">\sim\!3000</span>. The <span class="m">A</span> matrix
+          contains products like <span class="m">u'u \approx 9 \times 10^{6}</span>. SVD on such a poorly conditioned matrix is
+          dominated by floating-point rounding, so the recovered <span class="m">F</span> is meaningless.
+          Normalisation maps both point sets to zero mean and <span class="m">\sqrt{2}</span> average distance from the origin.
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>centroid:  c = (1/N) Σ pᵢ
-scale:     s = √2 / mean(‖pᵢ − c‖)
-
-Transform matrix:
-T = | s   0  −s·cₓ |
-    | 0   s  −s·cy |
-    | 0   0    1   |
-
-Normalised point:  p̃ = T p
-
-After computing F in normalised coords:
-  F_final = T₂ᵀ · F̃ · T₁</pre>
+            <p class="label">The math</p>
+            <p>Centre the points on the origin and scale them so their mean distance from it is <span class="m">\sqrt{2}</span>:</p>
+            <div class="m-block">\mathbf{c} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{p}_i, \qquad s = \frac{\sqrt{2}}{\frac{1}{N}\sum_{i=1}^{N} \lVert \mathbf{p}_i - \mathbf{c} \rVert}</div>
+            <div class="m-block">T = \begin{bmatrix} s & 0 & -s\,c_x \\ 0 & s & -s\,c_y \\ 0 & 0 & 1 \end{bmatrix}, \qquad \tilde{\mathbf{p}} = T\,\mathbf{p}</div>
+            <p>Estimate <span class="m">\tilde{F}</span> in the normalised frame, then undo the transform:</p>
+            <div class="m-block">F = T_2^{\mathsf{T}}\, \tilde{F}\, T_1</div>
           </div>
           <div>
             <p class="label">Code: normalize_points()</p>
@@ -199,24 +188,17 @@ return F / F[2, 2]   # fix scale (convention)</pre>
         <h2 id="sed">Symmetric Epipolar Distance (SED)</h2>
         <p>
           To count inliers we need a geometric distance between a match and its epipolar line,
-          in pixel units. The algebraic residual p₂ᵀFp₁ is not geometric. Its scale is
+          in pixel units. The algebraic residual <span class="m">\mathbf{p}_2^{\mathsf{T}} F \mathbf{p}_1</span> is not geometric &mdash; its scale is
           arbitrary. SED sums the point-to-line distances in both images.
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>Epipolar line in image 2:  l₂ = F p₁
-Epipolar line in image 1:  l₁ = Fᵀ p₂
-
-Algebraic residual:  r = |p₂ᵀ F p₁|
-
-Point-to-line distance (pixels):
-  d₂ = r / ‖(Fp₁)ₓᵧ‖₂
-  d₁ = r / ‖(Fᵀp₂)ₓᵧ‖₂
-
-SED = d₁ + d₂   (symmetric, in px)
-
-Inlier criterion:  SED &lt; 1.5 px</pre>
+            <p class="label">The math</p>
+            <p>The two epipolar lines and the algebraic residual:</p>
+            <div class="m-block">\boldsymbol{\ell}_2 = F\,\mathbf{p}_1, \qquad \boldsymbol{\ell}_1 = F^{\mathsf{T}}\mathbf{p}_2, \qquad r = \bigl\lvert \mathbf{p}_2^{\mathsf{T}} F\, \mathbf{p}_1 \bigr\rvert</div>
+            <p>Dividing by the line normal turns that residual into a real point-to-line distance in pixels:</p>
+            <div class="m-block">d_2 = \frac{r}{\lVert (F\mathbf{p}_1)_{xy} \rVert_2}, \qquad d_1 = \frac{r}{\lVert (F^{\mathsf{T}}\mathbf{p}_2)_{xy} \rVert_2}</div>
+            <div class="m-block">\mathrm{SED} = d_1 + d_2 \;<\; 1.5\ \text{px}</div>
           </div>
           <div>
             <p class="label">Code: symmetric_epipolar_distance()</p>
@@ -244,16 +226,12 @@ return num/denom1 + num/denom2  # px</pre>
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>Let w = inlier fraction (estimated online).
-Probability that 8 random samples are
-all inliers: p_good = w⁸
-
-Required iterations for confidence p:
-  n = log(1−p) / log(1−w⁸)
-
-As RANSAC finds better F → w↑ → n↓
-→ terminate early.</pre>
+            <p class="label">The math</p>
+            <p>With <span class="m">w</span> the inlier fraction, estimated online, the chance that all eight sampled points are inliers is:</p>
+            <div class="m-block">p_{\text{good}} = w^{8}</div>
+            <p>so the number of iterations needed for confidence <span class="m">p</span> is</p>
+            <div class="m-block">n = \frac{\log(1-p)}{\log\!\left(1-w^{8}\right)}</div>
+            <p>As RANSAC finds a better <span class="m">F</span>, <span class="m">w</span> rises, <span class="m">n</span> falls, and it can stop early.</p>
           </div>
           <div>
             <p class="label">Code: estimate_fundamental()</p>
@@ -313,63 +291,22 @@ if best_mask.sum() >= 8:
           into a 3D point cloud.
         </p>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+        <div class="ch-nav">
           <a href="ch1.html" class="chapter-nav-btn">
-            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
-            Ch 01: Feature Detection
+            ← Ch 01: Feature Detection
           </a>
           <a href="ch3.html" class="chapter-nav-btn">
-            Ch 03: Pose Recovery &amp; Triangulation
-            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+            Ch 03: Pose Recovery &amp; Triangulation →
           </a>
         </div>
 
-      </article>
-
-      <!-- Sidebar TOC -->
-      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
-        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
-        <nav style="display:flex; flex-direction:column; gap:1px;">
-          <a href="#epipolar"       class="toc-link">Epipolar constraint</a>
-          <a href="#eight-point"    class="toc-link">8-point algorithm</a>
-          <a href="#normalisation"  class="toc-link">Hartley normalisation</a>
-          <a href="#sed"            class="toc-link">Epipolar distance</a>
-          <a href="#ransac"         class="toc-link">RANSAC</a>
-          <a href="#pitfalls"       class="toc-link">Pitfalls</a>
-          <a href="#next"           class="toc-link">What's next</a>
-        </nav>
-
-        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
-          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
-          <div class="ch-series-nav">
-            <a href="ch1.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 01 · Features</span>
-            </a>
-            <div class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label ch-series-label--active">Ch 02 · Fund. Matrix</span>
-            </div>
-            <a href="ch3.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 03 · Triangulation</span>
-            </a>
-            <a href="ch4.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 04 · Evaluation</span>
-            </a>
-          </div>
-        </div>
-      </aside>
+      </div>
     </div>
 
     <footer class="site-footer">
       © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
     </footer>
-  </main>
-
-  <script src="../../assets/js/theme.js"></script>
-  <script src="../../assets/js/scroll.js"></script>
+  </article>
   <script>
     (function () {
       var links    = document.querySelectorAll('.toc-link');
@@ -398,6 +335,24 @@ if best_mask.sum() >= 8:
       }, { passive:true });
       updateRegistered();
     })();
+  </script>
+  <script>
+    /* render every \(.m\) inline and \(.m-block\) display equation with KaTeX */
+    function renderMath(){
+      if (!window.katex) return;
+      document.querySelectorAll('.m-block').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:true, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+      document.querySelectorAll('.m').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:false, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+    }
+    if (document.readyState === 'complete') renderMath();
+    window.addEventListener('load', renderMath);
   </script>
 </body>
 </html>

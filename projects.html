@@ -1,306 +1,190 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Projects | Poorna Sasank Sesetti</title>
-  <script>
-    (function () {
-      var t = localStorage.getItem('ps-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/site.css">
-  <style>
-    /* ── registration theme (matches homepage) ── */
-    :root { --accent-2:#5fd9ff; --point:rgba(140,150,160,0.55); --point-lit:rgba(60,196,124,0.9); }
-    html[data-theme="light"] { --accent-2:#1f7fa8; --point:rgba(40,50,60,0.40); --point-lit:rgba(21,145,90,0.85); }
-
-    #cloud { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
-    body > nav, body > main, body > footer { position:relative; z-index:1; }
-
-    .recon-hud {
-      position:fixed; left:1.1rem; bottom:1rem; z-index:40;
-      font-family:'IBM Plex Mono',monospace; font-size:10.5px;
-      color:var(--text-dimmer); line-height:1.7; pointer-events:none; user-select:none;
-      letter-spacing:0.02em;
-    }
-    .recon-hud b { color:var(--accent); font-weight:500; }
-    .recon-hud .reg { color:var(--accent-2); }
-    @media (max-width:640px){ .recon-hud{ display:none; } }
-
-    /* cards register into the frame as they scroll in */
-    #grid .card {
-      opacity:0; transform:translateY(24px); filter:blur(6px);
-      transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1), filter .6s ease;
-      will-change:opacity,transform,filter;
-    }
-    #grid .card.registered { opacity:1; transform:none; filter:none; }
-    @media (prefers-reduced-motion:reduce){
-      #grid .card { opacity:1; transform:none; filter:none; transition:none; }
-    }
-
-    .filter-bar { display: flex; gap: 6px; margin: 1.25rem 0 0.5rem; flex-wrap: wrap; }
-    .fpill {
-      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-      color: var(--text-dim); background: var(--surface-2);
-      border: 1px solid var(--border); border-radius: 4px;
-      padding: 4px 12px; cursor: pointer; transition: all 0.15s;
-    }
-    .fpill:hover { border-color: var(--border-mid); }
-    .fpill.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-    .count { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-dimmer); }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects - Poorna Sasank Sesetti</title>
+<meta name="description" content="Robotics, vision and perception projects, mostly written from scratch in C++ and Python.">
+<script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/paper.css">
 </head>
 <body>
 
-  <canvas id="cloud"></canvas>
+<canvas id="cloud"></canvas>
 
-  <div class="recon-hud" id="hud">
-    <div>frame <b id="hud-frame">000</b> · <span class="reg">REGISTERED</span></div>
-    <div>points <b id="hud-pts">0000</b> · projects <b id="hud-sec">0</b>/<span id="hud-tot">7</span></div>
-  </div>
+<header class="masthead">
+  <h1><a href="index.html">Poorna Sasank Sesetti</a></h1>
+  <p class="tagline">Robotics, perception, SLAM.</p>
 
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="index.html" class="brand">poorna<span>/</span></a>
-      <div class="nav-links">
-        <a href="projects.html" style="color:var(--accent)">projects</a>
-        <a href="index.html#journey" class="hide-sm">journey</a>
-        <a href="blog/index.html" class="blog-link">blog</a>
-        <a href="index.html#contact">contact</a>
-        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun"></i><i class="fa-solid fa-moon"></i>
-        </button>
-      </div>
-    </div>
+  <img class="portrait" src="assets/images/poorna-portrait.jpg" alt="Poorna Sasank Sesetti">
+
+  <nav class="menu">
+    <input id="menu-check" type="checkbox" hidden>
+    <label id="menu-label" for="menu-check" hidden>
+      <span class="icon close-icon">&#10005;</span>
+      <span class="icon open-icon">&#9776;</span>
+      <span class="text">Menu</span>
+    </label>
+    <ul>
+      <li><a href="index.html">About</a></li>
+      <li><a href="index.html#projects">Project graph</a></li>
+      <li class="active"><a href="projects.html">All projects</a></li>
+      <li><a href="blog/index.html">Build log</a></li>
+      <li><a href="index.html#publications">Publications</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
   </nav>
 
-  <main class="wrap">
-    <header style="padding:4rem 0 1rem" class="fade">
-      <div class="sec-head" style="margin-bottom:0.5rem">
-        <span class="prompt mono">ps@bonn ~/projects $</span>
-        <span class="mono" style="color:var(--text-dimmer);font-size:13px">registering scene</span>
-      </div>
-      <h1 style="font-family:'IBM Plex Serif',serif;font-weight:600;font-size:2rem;color:var(--text);margin-bottom:0.4rem">Projects</h1>
-      <p style="font-size:14.5px;color:var(--text-dim);max-width:52ch">
-        Robotics, vision, and perception. Mostly built from scratch in C++ and Python.
-      </p>
-      <div class="filter-bar">
-        <button class="fpill active" data-filter="all">all</button>
-        <button class="fpill" data-filter="robotics">robotics</button>
-        <button class="fpill" data-filter="vision">vision</button>
-        <button class="fpill" data-filter="ongoing">ongoing</button>
-      </div>
-      <span class="count" id="count"></span>
-    </header>
+  <p class="aside-note">
+    Bonn, Germany<br>
+    <button class="tog" id="theme-toggle">dark mode</button>
+  </p>
+</header>
 
-    <div class="proj-grid fade fade-2" id="grid" style="padding-bottom:2rem">
+<article class="main">
 
-      <div class="card" data-tags="robotics ongoing">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-hand-sparkles"></i></div>
-          <img src="assets/media/projects/hsr-ovmm.png" alt="Toyota HSR OVMM" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Robotics · 2026 <span class="badge-live">Ongoing</span></div>
-          <div class="card-title">Open-Vocab Mobile Manipulation</div>
-          <div class="card-stack mono">ROS 2 · Mask3D · SAM 3 · Nav2 · AnyGrasp `</div>
-          <p class="card-desc">Language-conditioned grasping on the Toyota HSR. Scene graph built from iPad scan data, Dockerised inference containers communicating over HTTP, and a two-phase geometric → AnyGrasp pipeline. Pure-Python core with ROS 2 as a thin adapter.</p>
-          <div class="card-foot">work in progress · lab project</div>
+  <header class="title">
+    <h1>Projects</h1>
+    <h3 class="subtitle">Robotics, vision and perception. Mostly written from scratch in C++ and Python.</h3>
+    <hr>
+  </header>
+
+  <p class="note centered" id="filter">
+    Show:
+    <button class="tog on" data-filter="all">all</button> &middot;
+    <button class="tog" data-filter="robotics">robotics</button> &middot;
+    <button class="tog" data-filter="vision">vision</button> &middot;
+    <button class="tog" data-filter="ongoing">ongoing</button>
+    <span id="count"></span>
+  </p>
+
+  <section class="projects" id="list">
+
+    <article class="project-card" data-tags="robotics ongoing">
+      <a class="project-link" href="projects/ovmm.html">
+        <div class="thumb">
+          <img src="assets/media/projects/hsr-ovmm-web.jpg" alt="Toyota HSR reaching for an object in a living room, with its scene graph overlaid" loading="lazy">
+          <span class="project-years">2026–present</span>
         </div>
-      </div>
-
-      <div class="card" data-tags="vision ongoing">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-layer-group"></i></div>
-          <img src="assets/media/projects/moro-lidar.png" alt="MoRo LiDAR pipeline" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">3D · LiDAR · 2026 <span class="badge-live">Ongoing</span></div>
-          <div class="card-title">Geospatial LiDAR Pipeline</div>
-          <div class="card-stack mono">PDAL · Open3D · Patchwork++ · CSF</div>
-          <p class="card-desc">Streaming point-cloud processing across a 10 km Bonn corridor (ALS + MMS, EPSG:25832). GPU tensor ops via Open3D, ground filtering, quasigeoid correction, and parallel tiled processing for heterogeneous hardware.</p>
-          <div class="card-foot">work in progress</div>
-        </div>
-      </div>
-
-      <a href="https://github.com/Poorna-Sasank/CasualSfM" target="_blank" rel="noopener" class="card" data-tags="vision">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-cube"></i></div>
-          <img src="assets/media/projects/casualsfm.png" alt="casualSfM" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Vision · 2025</div>
-          <div class="card-title">casualSfM</div>
-          <div class="card-stack mono">Python · OpenCV · NumPy</div>
-          <p class="card-desc">Incremental Structure-from-Motion for unordered photo sets. SIFT extraction, ratio-test matching, RANSAC essential matrix, pose recovery, triangulation, and bundle adjustment. Documented as a math-paired blog series.</p>
-          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
-        </div>
+        <h3 class="project-title">Open-Vocab Mobile Manipulation</h3>
+        <p class="project-desc">Language-conditioned grasping on the Toyota HSR, driven by a scene graph.</p>
       </a>
+    </article>
 
-      <div class="card" data-tags="robotics ongoing">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-map-location-dot"></i></div>
-          <img src="assets/media/projects/ekf-slam.png" alt="EKF SLAM" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Robotics · 2026</div>
-          <div class="card-title">EKF SLAM (slam-factory)</div>
-          <div class="card-stack mono">Python · ROS 2 · NumPy</div>
-          <p class="card-desc">Filter-based SLAM framework with abstract base classes, a clean Python core, and a thin ROS 2 wrapper. 25-test suite covering prediction, update, and data association. Documented after Thrun et al., Probabilistic Robotics.</p>
-          <div class="card-foot">work in progress</div>
+    <article class="project-card" data-tags="vision ongoing">
+      <a class="project-link" href="projects/lidar-pipeline.html">
+        <div class="thumb">
+          <img src="assets/media/projects/moro-lidar-web.jpg" alt="Merged airborne and mobile LiDAR point cloud of a Bonn street corridor, coloured by height" loading="lazy">
+          <span class="project-years">2026–present</span>
         </div>
-      </div>
-
-      <a href="https://github.com/Poorna-Sasank/BallBot.git" target="_blank" rel="noopener" class="card" data-tags="robotics">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-robot"></i></div>
-          <img src="assets/media/projects/ballbot.jpg" alt="" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Robotics · 2024</div>
-          <div class="card-title">BallBot</div>
-          <div class="card-stack mono">ROS 2 · Gazebo · OpenCV · Python</div>
-          <p class="card-desc">Autonomous mobile robot that detects and chases a coloured ball using real-time HSV segmentation and a PID velocity controller published to ROS 2 topics, simulated in Gazebo.</p>
-          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
-        </div>
+        <h3 class="project-title">Geospatial LiDAR Pipeline</h3>
+        <p class="project-desc">Streaming point-cloud processing across a 10 km Bonn corridor.</p>
       </a>
+    </article>
 
-      <a href="https://github.com/Poorna-Sasank/mujoco_ik_simulation" target="_blank" rel="noopener" class="card" data-tags="robotics">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-arrow-up-right-dots"></i></div>
-          <img src="assets/media/projects/ur5e-ik.jpg" alt="" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Robotics · 2024</div>
-          <div class="card-title">UR5e IK Control in MuJoCo</div>
-          <div class="card-stack mono">MuJoCo · Python · SciPy</div>
-          <p class="card-desc">Modular inverse-kinematics framework benchmarking gradient descent, SLSQP, and damped least-squares solvers across reachable and near-singular configurations.</p>
-          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+    <article class="project-card" data-tags="vision">
+      <a class="project-link" href="projects/casualsfm.html">
+        <div class="thumb">
+          <img src="assets/media/projects/casualsfm-web.jpg" alt="Sparse 3D point cloud triangulated from two photographs of a fountain" loading="lazy">
+          <span class="project-years">2025</span>
         </div>
+        <h3 class="project-title">casualSfM</h3>
+        <p class="project-desc">Incremental Structure-from-Motion, written from scratch and documented.</p>
       </a>
+    </article>
 
-      <a href="https://github.com/Poorna-Sasank/turtlebot3-internet-control.git" target="_blank" rel="noopener" class="card" data-tags="robotics">
-        <div class="card-media"><div class="ph"><i class="fa-solid fa-wifi"></i></div>
-          <img src="assets/media/projects/turtlebot3-remote.jpg" alt="" onerror="this.remove()"></div>
-        <div class="card-body">
-          <div class="card-meta">Robotics · 2024</div>
-          <div class="card-title">MQTT Remote Control of TurtleBot3</div>
-          <div class="card-stack mono">ROS 2 · Gazebo · MQTT</div>
-          <p class="card-desc">Internet-based teleoperation of TurtleBot3 using an MQTT broker bridged into ROS 2 publisher/subscriber nodes, with sub-80 ms observed latency over the public internet.</p>
-          <div class="card-foot"><i class="fa-brands fa-github"></i> GitHub</div>
+    <article class="project-card" data-tags="robotics ongoing">
+      <a class="project-link" href="projects/slam-factory.html">
+        <div class="thumb">
+          <img src="assets/media/projects/ekf-slam-web.jpg" alt="EKF SLAM run showing the estimated trajectory, landmark estimates and uncertainty ellipses" loading="lazy">
+          <span class="project-years">2026–present</span>
         </div>
+        <h3 class="project-title">EKF SLAM (slam-factory)</h3>
+        <p class="project-desc">A filter-based SLAM framework with a clean core and a thin ROS 2 shell.</p>
       </a>
+    </article>
 
-    </div>
+    <article class="project-card" data-tags="robotics">
+      <a class="project-link" href="projects/ballbot.html">
+        <div class="thumb thumb--empty">
+          ROS 2 · Gazebo · OpenCV · Python
+          <span class="project-years">2024</span>
+        </div>
+        <h3 class="project-title">BallBot</h3>
+        <p class="project-desc">A mobile robot that finds a coloured ball and chases it.</p>
+      </a>
+    </article>
 
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-dimmer);padding-bottom:1.5rem">
-      More unfolding. <a href="blog/index.html" style="color:var(--accent)">follow the build log →</a>
-    </p>
-  </main>
+    <article class="project-card" data-tags="robotics">
+      <a class="project-link" href="projects/ur5e-ik.html">
+        <div class="thumb thumb--empty">
+          MuJoCo · Python · SciPy
+          <span class="project-years">2024</span>
+        </div>
+        <h3 class="project-title">UR5e IK Control in MuJoCo</h3>
+        <p class="project-desc">Benchmarking three inverse-kinematics solvers on a 6-DOF arm.</p>
+      </a>
+    </article>
 
-  <footer class="footer">
-    © 2026 Poorna Sasank Sesetti · Bonn, Germany ·
-    <a href="https://github.com/Poorna-Sasank" target="_blank" rel="noopener">source</a>
+    <article class="project-card" data-tags="robotics">
+      <a class="project-link" href="projects/turtlebot3-mqtt.html">
+        <div class="thumb thumb--empty">
+          ROS 2 · Gazebo · MQTT
+          <span class="project-years">2024</span>
+        </div>
+        <h3 class="project-title">MQTT Remote Control of TurtleBot3</h3>
+        <p class="project-desc">Driving a TurtleBot3 over the public internet.</p>
+      </a>
+    </article>
+
+  </section>
+
+  <p class="note centered">
+    The four main ones as a project graph, showing what they share, is on the
+    <a href="index.html#projects">home page</a>.
+  </p>
+
+  <footer>
+    <hr>
+    <div class="copyright"><sub>&copy;
+      <a href="index.html">Poorna Sasank Sesetti</a> 2026 |
+      <a href="https://github.com/spicyram3n/personal-portfolio">source</a>
+    </sub></div>
   </footer>
 
-  <script src="assets/js/theme.js"></script>
-  <script>
-    /* ── point-cloud background (matches homepage) ── */
-    (function () {
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var cv = document.getElementById('cloud'); if(!cv) return;
-      var ctx = cv.getContext('2d');
-      var DPR = Math.min(window.devicePixelRatio || 1, 2);
-      var W,H,pts=[],N;
-      function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-      var col={};
-      function readColors(){ col.point=css('--point'); col.lit=css('--point-lit'); col.edge=css('--border'); }
-      function resize(){
-        W=cv.width=innerWidth*DPR; H=cv.height=innerHeight*DPR;
-        cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
-        N=Math.min(160, Math.floor(innerWidth/9)); pts=[];
-        for(var i=0;i<N;i++) pts.push({x:Math.random()*W,y:Math.random()*H,z:Math.random(),
-          vx:(Math.random()-0.5)*0.18*DPR, vy:(Math.random()-0.5)*0.18*DPR});
-      }
-      var mouse={x:-9999,y:-9999};
-      window.addEventListener('pointermove',function(e){ mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; });
-      window.addEventListener('pointerleave',function(){ mouse.x=mouse.y=-9999; });
-      function frame(){
-        ctx.clearRect(0,0,W,H);
-        var linkD=120*DPR, linkD2=linkD*linkD;
-        for(var i=0;i<N;i++){
-          var p=pts[i]; p.x+=p.vx; p.y+=p.vy;
-          if(p.x<0)p.x+=W; if(p.x>W)p.x-=W; if(p.y<0)p.y+=H; if(p.y>H)p.y-=H;
-          for(var j=i+1;j<N;j++){
-            var q=pts[j], dx=p.x-q.x, dy=p.y-q.y, d2=dx*dx+dy*dy;
-            if(d2<linkD2){
-              ctx.strokeStyle=col.edge; ctx.globalAlpha=(1-d2/linkD2)*0.5*0.6;
-              ctx.lineWidth=0.6*DPR; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
-            }
-          }
-        }
-        ctx.globalAlpha=1;
-        for(var k=0;k<N;k++){
-          var pt=pts[k], mdx=pt.x-mouse.x, mdy=pt.y-mouse.y;
-          var near=(mdx*mdx+mdy*mdy)<(140*DPR*140*DPR);
-          var r=(0.7+pt.z*1.5)*DPR*(near?1.8:1);
-          ctx.beginPath(); ctx.arc(pt.x,pt.y,r,0,Math.PI*2);
-          ctx.fillStyle=near?col.lit:col.point;
-          ctx.globalAlpha=near?0.95:(0.35+pt.z*0.4); ctx.fill();
-        }
-        ctx.globalAlpha=1;
-        if(!reduce) requestAnimationFrame(frame);
-      }
-      readColors(); resize();
-      window.addEventListener('resize',function(){ readColors(); resize(); if(reduce) frame(); });
-      new MutationObserver(function(){ readColors(); if(reduce) frame(); })
-        .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-      frame();
-    })();
-  </script>
-  <script>
-    var pills = document.querySelectorAll('.fpill');
-    var cards = document.querySelectorAll('#grid .card');
-    var count = document.getElementById('count');
+</article>
 
-    /* ── registration: cards snap into the frame + drive the HUD ── */
-    var hudFrame=document.getElementById('hud-frame'),
-        hudPts=document.getElementById('hud-pts'),
-        hudSec=document.getElementById('hud-sec'),
-        hudTot=document.getElementById('hud-tot');
-    if(hudTot) hudTot.textContent = cards.length;
-    var registered=0, basePts=1284;
-    var io=new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if(en.isIntersecting && !en.target.classList.contains('registered')){
-          en.target.classList.add('registered');
-          registered++;
-          if(hudSec) hudSec.textContent=registered;
-          if(hudPts) hudPts.textContent=String(basePts+registered*617).padStart(4,'0');
-        }
-      });
-    },{ threshold:0.16, rootMargin:'0px 0px -6% 0px' });
-    cards.forEach(function(c){ io.observe(c); });
+<script src="assets/js/site.js"></script>
+<script>
+/* filter the grid by tag; plain show/hide */
+(function () {
+  var buttons = document.querySelectorAll('#filter button');
+  var cards   = document.querySelectorAll('#list .project-card');
+  var count   = document.getElementById('count');
 
-    var f=0, ticking=false;
-    window.addEventListener('scroll', function(){
-      if(!ticking){ requestAnimationFrame(function(){
-        f=(f+1)%1000; if(hudFrame) hudFrame.textContent=String(f).padStart(3,'0'); ticking=false;
-      }); ticking=true; }
-    }, { passive:true });
-
-    /* ── filter (re-registers visible cards instantly) ── */
-    function apply(f, instant) {
-      var n = 0;
-      cards.forEach(function (c) {
-        var show = f === 'all' || (c.dataset.tags || '').indexOf(f) !== -1;
-        c.style.display = show ? '' : 'none';
-        if (show){ n++; if(instant) c.classList.add('registered'); }
-      });
-      count.textContent = n + (n === 1 ? ' project' : ' projects');
-    }
-    pills.forEach(function (p) {
-      p.addEventListener('click', function () {
-        pills.forEach(function (x) { x.classList.remove('active'); });
-        p.classList.add('active');
-        apply(p.dataset.filter, true);
-      });
+  function apply(f) {
+    var n = 0;
+    cards.forEach(function (c) {
+      var show = f === 'all' || (c.dataset.tags || '').indexOf(f) !== -1;
+      c.style.display = show ? '' : 'none';
+      if (show) n++;
     });
-    apply('all', false);
-  </script>
+    count.textContent = '(' + n + (n === 1 ? ' project)' : ' projects)');
+  }
+
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      buttons.forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      apply(b.dataset.filter);
+    });
+  });
+
+  apply('all');
+})();
+</script>
 </body>
 </html>

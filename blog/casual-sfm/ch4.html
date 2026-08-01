@@ -1,48 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ch 04 – Evaluation &amp; Visualisation · casualSfM</title>
-  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/components.css">
-  <link rel="stylesheet" href="../../assets/css/animations.css">
-  <link rel="stylesheet" href="../../assets/css/terminal.css">
-  <link rel="stylesheet" href="../../assets/css/chapter.css">
-  <link rel="stylesheet" href="../../assets/css/blog-reading.css">
-  <style>
-    #progress-bar { top: 0; z-index: 200; }
-  </style>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="../../assets/css/blog.css">
 </head>
-<body class="font-sans">
-  <div id="progress-bar"></div>
+<body>
 
-  <nav class="site-nav">
-    <div class="site-nav__inner">
-      <div class="site-nav__left">
-        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun toggle-icon-sun"></i>
-          <div class="toggle-track"><div class="toggle-thumb"></div></div>
-          <i class="fa-solid fa-moon toggle-icon-moon"></i>
-        </button>
-      </div>
-      <nav class="site-nav__links">
-        <a href="../../index.html"    class="nav-link">Home</a>
-        <a href="../../projects.html"      class="nav-link">Projects</a>
-        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
-        <a href="../../index.html#contact" class="nav-link">Contact</a>
-      </nav>
-    </div>
-  </nav>
+  <div class="backbar">
+    <a class="backbtn" href="../../index.html">&larr; Portfolio</a>
+  </div>
 
-  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+  <article class="main">
 
     <div class="mb-8 fade-up">
       <div class="breadcrumb">
@@ -50,11 +23,11 @@
         <span>casualSfM</span><span class="sep">/</span>
         <span class="current">Ch 04</span>
       </div>
-      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+      <div class="ch-kicker">
         <span class="badge badge--warm">Series 01 · Ch 04</span>
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">April 2026 · ~10 min read</span>
+        <span class="ch-meta">April 2026 · ~10 min read</span>
       </div>
-      <h1 class="chapter-title" style="color:var(--text);">
+      <h1 class="chapter-title">
         Evaluation &amp; Visualisation<br>Reprojection Error &amp; Rerun
       </h1>
       <p class="chapter-dek">
@@ -64,8 +37,43 @@
       </p>
     </div>
 
-    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
-      <article class="prose" style="flex:1; min-width:0;">
+    <div class="ch-body">
+      <aside class="ch-aside">
+        <p class="aside-label">On this page</p>
+        <nav class="toc">
+          <a href="#results"              class="toc-link">Results</a>
+          <a href="#reprojection-error"   class="toc-link">Reprojection error</a>
+          <a href="#backprojection-plot"  class="toc-link">Back-projection</a>
+          <a href="#error-histogram"      class="toc-link">Error distribution</a>
+          <a href="#depth-histogram"      class="toc-link">Depth distribution</a>
+          <a href="#visualise"            class="toc-link">Rerun</a>
+          <a href="#what-worked"          class="toc-link">What worked</a>
+        </nav>
+
+        <div class="aside-series">
+          <p class="aside-label">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <a href="ch2.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
+            </a>
+            <a href="ch3.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 03 · Triangulation</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 04 · Evaluation</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="ch-prose">
 
         <h2 id="results">Results at a Glance</h2>
         <div class="results-grid">
@@ -104,19 +112,13 @@
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>For each point Xᵢ and observation pᵢ:
-
-  p̂ᵢ = project(Xᵢ)   (via K, R, t)
-     = K (R Xᵢ + t) / (R Xᵢ + t)[2]
-
-Reprojection error:
-  eᵢ = ‖p̂ᵢ − pᵢ‖₂   (Euclidean, pixels)
-
-Summary statistics:
-  mean   = (1/N) Σ eᵢ
-  median = sorted eᵢ at 50th percentile
-  p95    = sorted eᵢ at 95th percentile</pre>
+            <p class="label">The math</p>
+            <p>Project each reconstructed point back into the image it came from:</p>
+            <div class="m-block">\hat{\mathbf{p}}_i = \frac{K\bigl(R\mathbf{X}_i + \mathbf{t}\bigr)}{\bigl(R\mathbf{X}_i + \mathbf{t}\bigr)_z}</div>
+            <p>and measure how far that lands from the observation:</p>
+            <div class="m-block">e_i = \lVert \hat{\mathbf{p}}_i - \mathbf{p}_i \rVert_2 \quad \text{(pixels)}</div>
+            <p>Reported as the mean, the median, and the 95th percentile of <span class="m">\{e_i\}</span>:</p>
+            <div class="m-block">\bar{e} = \frac{1}{N}\sum_{i=1}^{N} e_i</div>
           </div>
           <div>
             <p class="label">Code: evaluate()</p>
@@ -208,14 +210,10 @@ print(f"cam1  p95:  {np.percentile(err0,95):.2f} px")</pre>
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>depth of point Xᵢ (in camera 1 frame):
-  z = Xᵢ[2]   (world = camera 1 frame)
-
-Expected structure for a fountain scene:
-  - Fountain body: foreground, smaller z
-  - Brick wall:    background, larger z
-  - Sky/frame:     clipped (far away)</pre>
+            <p class="label">The math</p>
+            <p>Camera 1 is the world frame, so a point&rsquo;s depth is simply its <span class="m">z</span> coordinate:</p>
+            <div class="m-block">z_i = \mathbf{X}_{i,z}</div>
+            <p>For a fountain scene you expect the fountain body in the foreground at small <span class="m">z</span>, the brick wall behind it at larger <span class="m">z</span>, and the sky clipped away entirely.</p>
           </div>
           <div>
             <p class="label">Code</p>
@@ -324,59 +322,19 @@ for i, cam in enumerate(reconstruction.cameras):
           </p>
         </div>
 
-        <div style="display:flex; justify-content:flex-start; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+        <div class="ch-nav">
           <a href="ch3.html" class="chapter-nav-btn">
-            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
-            Ch 03: Pose Recovery &amp; Triangulation
+            ← Ch 03: Pose Recovery &amp; Triangulation
           </a>
         </div>
 
-      </article>
-
-      <!-- Sidebar TOC -->
-      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
-        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
-        <nav style="display:flex; flex-direction:column; gap:1px;">
-          <a href="#results"              class="toc-link">Results</a>
-          <a href="#reprojection-error"   class="toc-link">Reprojection error</a>
-          <a href="#backprojection-plot"  class="toc-link">Back-projection</a>
-          <a href="#error-histogram"      class="toc-link">Error distribution</a>
-          <a href="#depth-histogram"      class="toc-link">Depth distribution</a>
-          <a href="#visualise"            class="toc-link">Rerun</a>
-          <a href="#what-worked"          class="toc-link">What worked</a>
-        </nav>
-
-        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
-          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
-          <div class="ch-series-nav">
-            <a href="ch1.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 01 · Features</span>
-            </a>
-            <a href="ch2.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
-            </a>
-            <a href="ch3.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 03 · Triangulation</span>
-            </a>
-            <div class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label ch-series-label--active">Ch 04 · Evaluation</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      </div>
     </div>
 
     <footer class="site-footer">
       © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
     </footer>
-  </main>
-
-  <script src="../../assets/js/theme.js"></script>
-  <script src="../../assets/js/scroll.js"></script>
+  </article>
   <script>
     (function () {
       var links    = document.querySelectorAll('.toc-link');
@@ -405,6 +363,24 @@ for i, cam in enumerate(reconstruction.cameras):
       }, { passive:true });
       updateRegistered();
     })();
+  </script>
+  <script>
+    /* render every \(.m\) inline and \(.m-block\) display equation with KaTeX */
+    function renderMath(){
+      if (!window.katex) return;
+      document.querySelectorAll('.m-block').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:true, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+      document.querySelectorAll('.m').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:false, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+    }
+    if (document.readyState === 'complete') renderMath();
+    window.addEventListener('load', renderMath);
   </script>
 </body>
 </html>

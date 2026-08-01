@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>casualSfM - Poorna Sasank Sesetti</title>
+<meta name="description" content="Incremental Structure-from-Motion, written from scratch and documented.">
+<script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/paper.css">
+</head>
+<body>
+
+<canvas id="cloud"></canvas>
+
+<header class="masthead">
+  <h1><a href="../index.html">Poorna Sasank Sesetti</a></h1>
+  <p class="tagline">Robotics, perception, SLAM.</p>
+
+  <img class="portrait" src="../assets/images/poorna-portrait.jpg" alt="Poorna Sasank Sesetti">
+
+  <nav class="menu">
+    <input id="menu-check" type="checkbox" hidden>
+    <label id="menu-label" for="menu-check" hidden>
+      <span class="icon close-icon">&#10005;</span>
+      <span class="icon open-icon">&#9776;</span>
+      <span class="text">Menu</span>
+    </label>
+    <ul>
+      <li><a href="../index.html">About</a></li>
+      <li><a href="../index.html#projects">Project graph</a></li>
+      <li class="active"><a href="../projects.html">All projects</a></li>
+      <li><a href="../blog/index.html">Build log</a></li>
+      <li><a href="../index.html#publications">Publications</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <p class="aside-note">
+    Bonn, Germany<br>
+    <button class="tog" id="theme-toggle">dark mode</button>
+  </p>
+</header>
+
+<article class="main">
+
+  <header class="title">
+    <h1>casualSfM</h1>
+    <hr>
+  </header>
+
+  <p class="detail-meta">Vision · 2025 · personal project<br>Python · OpenCV · NumPy</p>
+
+  <p class="detail-hero"><img src="../assets/media/projects/casualsfm-web.jpg" alt="Sparse 3D point cloud triangulated from two photographs of a fountain"></p>
+  <p>Two photographs of the same scene, and out the other end a coloured 3D point cloud. Every stage is written out by hand rather than handed to a library: SIFT extraction and ratio-test matching, a normalised 8-point algorithm wrapped in RANSAC for the fundamental matrix, the essential matrix and pose recovery with a cheirality check, DLT triangulation, then bundle adjustment.</p>
+
+  <p>On the test pair it recovers <strong>701 points at 0.50 px mean reprojection error</strong>, which is to say the estimated geometry explains the original observations to well under a pixel.</p>
+
+  <p>The point was never the point cloud. It was to understand where each of these steps fails and why, which is why the whole thing is written up chapter by chapter with the maths set beside the code that implements it.</p>
+
+  <ul>
+    <li><a href="https://github.com/spicyram3n/casualSfM"><strong>Github repository</strong></a>. The source, the four stages as independent modules, and the evaluation scripts.</li>
+    <li><a href="../blog/index.html"><strong>The build log</strong></a>. Four chapters taking the pipeline apart: features, the fundamental matrix, triangulation, and evaluation.</li>
+  </ul>
+
+  <p class="note centered back-link"><a href="../projects.html">&larr; All projects</a></p>
+
+  <footer>
+    <hr>
+    <div class="copyright"><sub>&copy;
+      <a href="../index.html">Poorna Sasank Sesetti</a> 2026 |
+      <a href="https://github.com/spicyram3n/personal-portfolio">source</a>
+    </sub></div>
+  </footer>
+
+</article>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

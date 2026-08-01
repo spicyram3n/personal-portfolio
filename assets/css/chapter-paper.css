@@ -1,0 +1,159 @@
+/* ==========================================================================
+   chapter-paper.css — reading styles for the build-log chapters.
+   Loaded after paper.css; targets the class names the chapter markup
+   already uses. Same idiom as the rest of the site: one column, hairline
+   boxes with an offset grey drop, no ornament.
+   ========================================================================== */
+
+/* ── chapter head ── */
+.breadcrumb { font-size: .85em; color: var(--dim); text-align: center; margin-bottom: 10px; }
+.breadcrumb .sep { padding: 0 .4em; color: var(--dimmer); }
+.breadcrumb .current { color: var(--text); }
+
+.badge { font-size: .8em; color: var(--dim); }
+.ch-kicker {
+  display: flex; justify-content: center; align-items: baseline; gap: .8em;
+  margin-bottom: 6px; font-size: .85em; color: var(--dim);
+}
+.ch-meta { font-size: .85em; color: var(--dimmer); }
+
+.ch-title, .chapter-title {
+  font-size: 32px; font-weight: 300; line-height: 1.25;
+  text-align: center; margin: 0 0 24px;
+}
+.ch-sub { text-align: center; color: var(--dim); margin: -14px 0 20px; }
+.ch-dek, .chapter-dek { margin: 0 0 6px; }
+
+.ch-head, .mb-8 { margin-bottom: 0; }
+
+/* ── contents box, sitting at the top of the article ── */
+.ch-aside {
+  border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  padding: 12px 18px 14px; margin: 34px 0 40px;
+}
+.aside-label {
+  font-size: .78em; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin: 0 0 4px;
+}
+.toc, .ch-series-nav {
+  display: flex; flex-wrap: wrap; gap: 2px 0;
+  margin: 0; padding: 0; flex-direction: row;
+}
+/* run the contents out as one line, middots between the items */
+.toc-link::after, .series-item::after, .ch-series-item::after {
+  content: "·"; padding: 0 10px; color: var(--dimmer);
+}
+.toc-link:last-child::after, .series-item:last-child::after,
+.ch-series-item:last-child::after { content: none; }
+.toc-link, .series-item, .ch-series-item { font-size: .9em; border-bottom: none; }
+.toc-link:hover, .series-item:hover, .ch-series-item:hover { border-bottom: 1px solid; }
+.toc-link.is-active, .series-item--active, .ch-series-label--active { font-weight: 600; }
+.series-item .dot, .ch-series-dot { display: none; }
+.aside-series { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hair); }
+
+/* ── prose ── */
+.ch-prose h2, .prose h2 { font-size: 22px; font-weight: 450; text-align: center; margin: 55px 0 26px; }
+.ch-prose h3, .prose h3 { font-size: 19px; font-weight: 450; text-align: left; margin: 40px 0 16px; }
+
+figure.wide { margin: 1.6em 0; }
+figure img { max-width: 100%; height: auto; }
+
+/* ── code ── */
+/* bare <pre> blocks in the prose get the same box as <pre><code> */
+.ch-prose > section > pre, .ch-prose > pre, .prose > pre {
+  border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  padding: 1em; background: none; line-height: 1.7; margin: 1.4em 0;
+}
+pre.codeblock, .math-figure pre, .math-code pre { font-size: .84em; }
+pre.codeblock code, pre.codeblock {
+  display: block; border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  padding: 1em; overflow-x: auto; line-height: 1.7; background: none;
+}
+pre.codeblock code { border: none; box-shadow: none; padding: 0; }
+
+/* ── maths beside code ── */
+.math-figure, .math-code {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  margin: 1.6em 0;
+}
+.math-figure__math, .math-code > div:first-child {
+  padding: 14px 16px; border-right: 1px solid var(--hair); min-width: 0;
+}
+.math-figure__code, .math-code > div:last-child {
+  padding: 14px 16px; background: var(--code-bg); min-width: 0;
+}
+.math-figure pre, .math-code pre {
+  border: none; box-shadow: none; background: none; padding: 0; margin: 0;
+  overflow-x: auto; line-height: 1.6;
+}
+.math-figure__code pre code { border: none; box-shadow: none; padding: 0; background: none; }
+.math-figure p, .math-code p { font-size: .92em; margin: .5em 0; }
+.pane-label, .math-code .label {
+  font-size: .74em; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin: 0 0 8px;
+}
+.m-block { margin: 12px 0 14px; overflow-x: auto; }
+
+@media (max-width: 700px) {
+  .math-figure, .math-code { grid-template-columns: 1fr; }
+  .math-figure__math, .math-code > div:first-child {
+    border-right: none; border-bottom: 1px solid var(--hair);
+  }
+}
+
+/* ── callouts ── */
+.callout {
+  border-left: 3px solid var(--hair); padding: 4px 0 4px 18px;
+  margin: 1.4em 0; font-size: .95em; color: var(--dim);
+}
+.callout-label {
+  display: block; font-size: .78em; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text); margin-bottom: 2px;
+}
+.callout--insight { border-left-color: var(--text); }
+
+/* ── pipeline diagram ── */
+.flow {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 6px 8px; font-size: .82em; color: var(--dim);
+  border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  padding: 12px 14px;
+}
+.flow-step { padding: 1px 6px; border: 1px solid var(--hair); }
+.flow-step--active { color: var(--text); border-color: var(--dim); }
+.flow-arrow { color: var(--dimmer); }
+
+/* ── results table ── */
+.results-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--hair); border-right: none; border-bottom: none;
+  box-shadow: 5px 5px 5px var(--shadow); margin: 1.6em 0;
+}
+.result-card { border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); padding: 10px 14px; }
+.result-card .val { font-size: 1.15em; }
+.result-card .desc { font-size: .82em; color: var(--dim); line-height: 1.5; }
+@media (max-width: 620px) { .results-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── end-of-chapter ── */
+.next-link, .chapter-nav-btn { font-size: .95em; }
+.ch-nav {
+  display: flex; justify-content: space-between; gap: 1.5em;
+  margin-top: 3em; padding-top: 1.2em; border-top: 1px solid var(--hair);
+}
+.series-complete {
+  border: 1px solid var(--hair); box-shadow: 5px 5px 5px var(--shadow);
+  padding: 14px 18px; margin: 2em 0;
+}
+.series-complete-label {
+  display: block; font-size: .78em; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin-bottom: 4px;
+}
+.series-complete p { margin: 0; font-size: .95em; color: var(--dim); }
+
+.ch-foot, .site-footer { margin-top: 50px; font-size: .85em; color: var(--dimmer); text-align: center; }
+.ch-foot { border-top: 1px solid var(--hair); padding-top: 14px; }
+
+/* KaTeX should inherit the page's size rather than shout */
+.katex { font-size: 1em; }
+.katex-display { margin: 8px 0; }

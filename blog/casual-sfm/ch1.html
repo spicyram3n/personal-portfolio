@@ -1,49 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ch 01 — Feature Detection & Matching · casualSfM</title>
-  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <!-- KaTeX for real typeset math -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
 
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/components.css">
-  <link rel="stylesheet" href="../../assets/css/terminal.css">
-  <link rel="stylesheet" href="../../assets/css/blog-chapter-v2.css">
+  <link rel="stylesheet" href="../../assets/css/blog.css">
 </head>
 <body>
-  <div id="progress-bar"></div>
 
-  <nav class="site-nav">
-    <div class="site-nav__inner">
-      <div class="site-nav__left">
-        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun toggle-icon-sun"></i>
-          <div class="toggle-track"><div class="toggle-thumb"></div></div>
-          <i class="fa-solid fa-moon toggle-icon-moon"></i>
-        </button>
-      </div>
-      <nav class="site-nav__links">
-        <a href="../../index.html"    class="nav-link">Home</a>
-        <a href="../../projects.html" class="nav-link">Projects</a>
-        <a href="../index.html"       class="nav-link nav-link--blog">Blog</a>
-        <a href="../../index.html#contact" class="nav-link">Contact</a>
-      </nav>
-    </div>
-  </nav>
+  <div class="backbar">
+    <a class="backbtn" href="../../index.html">&larr; Portfolio</a>
+  </div>
 
   <!-- ===== chapter ===== -->
-  <article class="ch">
+  <article class="main">
 
     <header class="ch-head">
       <div class="breadcrumb">
@@ -173,11 +150,11 @@ kp2, desc2 = sift.detectAndCompute(img2, None)
             keypoint that stays stable when the image is rotated or relit.
           </p>
           <p>
-            SIFT builds this from gradients. It takes a 16×16 patch around the
-            keypoint, rotates the patch to the keypoint's dominant gradient
+            SIFT builds this from gradients. It takes a <span class="m">16 \times 16</span> patch
+            around the keypoint, rotates the patch to the keypoint's dominant gradient
             direction (which is what buys rotation invariance), splits it into a
-            4×4 grid of cells, and builds an 8-bin histogram of gradient directions
-            in each cell.
+            <span class="m">4 \times 4</span> grid of cells, and builds an 8-bin histogram
+            of gradient directions in each cell.
           </p>
           <div class="wide math-figure">
             <div class="math-figure__math">
@@ -355,8 +332,7 @@ pts2 = np.float32(
             8-point algorithm wrapped in RANSAC.
           </p>
           <a href="ch2.html" class="next-link">
-            Chapter 02 · The Fundamental Matrix &amp; RANSAC
-            <i class="fa-solid fa-arrow-right"></i>
+            Chapter 02 · The Fundamental Matrix &amp; RANSAC →
           </a>
         </section>
 
@@ -368,7 +344,6 @@ pts2 = np.float32(
     </footer>
   </article>
 
-  <script src="../../assets/js/theme.js"></script>
   <script>
     function renderMath(){
       if (!window.katex) return;
@@ -388,6 +363,7 @@ pts2 = np.float32(
 
     (function(){
       var bar = document.getElementById('progress-bar');
+      if (!bar) return;
       function upd(){
         var h = document.documentElement;
         var max = h.scrollHeight - h.clientHeight;

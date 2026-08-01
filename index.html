@@ -1,982 +1,255 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Poorna Sasank Sesetti | Robotics & Computer Vision</title>
-  <meta name="description" content="MSc Mobile Robotics student at the University of Bonn. I build perception, SLAM, and mobile-manipulation systems from first principles.">
-
-  <script>
-    (function () {
-      var t = localStorage.getItem('ps-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <style>
-  /* ============================================================
-     recon — portfolio that reconstructs itself
-     The page boots as a sparse point cloud and incrementally
-     registers content into the global frame as you scroll.
-     Identity: IBM Plex · phosphor green · SfM/SLAM vernacular
-     ============================================================ */
-
-  html[data-theme="dark"] {
-    --bg:          #070809;
-    --surface:     #0d0f11;
-    --surface-2:   #131619;
-    --nav-bg:      rgba(7,8,9,0.82);
-    --border:      rgba(255,255,255,0.07);
-    --border-mid:  rgba(255,255,255,0.14);
-    --text:        #e8e5de;
-    --text-dim:    rgba(232,229,222,0.66);
-    --text-dimmer: rgba(232,229,222,0.40);
-    --accent:      #3cc47c;
-    --accent-2:    #5fd9ff;     /* registration cyan */
-    --accent-soft: rgba(60,196,124,0.13);
-    --gold:        #d4a853;
-    --point:       rgba(140,150,160,0.55);
-    --point-lit:   rgba(60,196,124,0.9);
-  }
-  html[data-theme="light"] {
-    --bg:          #f4f2ec;
-    --surface:     #ffffff;
-    --surface-2:   #ebe8e0;
-    --nav-bg:      rgba(244,242,236,0.85);
-    --border:      rgba(0,0,0,0.10);
-    --border-mid:  rgba(0,0,0,0.18);
-    --text:        #16181b;
-    --text-dim:    rgba(22,24,27,0.68);
-    --text-dimmer: rgba(22,24,27,0.45);
-    --accent:      #15915a;
-    --accent-2:    #1f7fa8;
-    --accent-soft: rgba(21,145,90,0.10);
-    --gold:        #a8761f;
-    --point:       rgba(40,50,60,0.40);
-    --point-lit:   rgba(21,145,90,0.85);
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body {
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Inter',system-ui,sans-serif;
-    font-weight:300;
-    line-height:1.62;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
-  }
-  ::selection { background:var(--accent-soft); color:var(--text); }
-  a { color:inherit; text-decoration:none; }
-  .mono { font-family:'IBM Plex Mono',monospace; }
-
-  /* ── point cloud canvas (fixed behind everything) ── */
-  #cloud {
-    position:fixed; inset:0;
-    width:100%; height:100%;
-    z-index:0; pointer-events:none;
-  }
-
-  /* ── reconstruction status readout, fixed corner ── */
-  .recon-hud {
-    position:fixed; left:1.1rem; bottom:1rem; z-index:40;
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
-    color:var(--text-dimmer); line-height:1.7;
-    pointer-events:none; user-select:none;
-    letter-spacing:0.02em;
-  }
-  .recon-hud b { color:var(--accent); font-weight:500; }
-  .recon-hud .reg { color:var(--accent-2); }
-  @media (max-width:640px){ .recon-hud{ display:none; } }
-
-  /* ── nav ── */
-  .nav {
-    position:sticky; top:0; z-index:50;
-    background:var(--nav-bg); backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    border-bottom:1px solid var(--border);
-  }
-  .nav-inner {
-    max-width:820px; margin:0 auto; padding:0.8rem 1.5rem;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .brand {
-    font-family:'IBM Plex Mono',monospace; font-size:14px;
-    font-weight:500; letter-spacing:0.02em; color:var(--text);
-  }
-  .brand span { color:var(--accent); }
-  .nav-links { display:flex; gap:1.5rem; align-items:center;
-    font-family:'IBM Plex Mono',monospace; font-size:12.5px; }
-  .nav-links a { color:var(--text-dim); transition:color .15s; }
-  .nav-links a:hover { color:var(--accent); }
-  .theme-btn {
-    background:none; border:1px solid var(--border-mid); color:var(--text-dim);
-    width:30px; height:30px; border-radius:5px; cursor:pointer;
-    display:grid; place-items:center; transition:.15s;
-  }
-  .theme-btn:hover { color:var(--accent); border-color:var(--accent); }
-  html[data-theme="dark"] .theme-btn .fa-sun { display:none; }
-  html[data-theme="light"] .theme-btn .fa-moon { display:none; }
-  @media (max-width:600px){ .hide-sm{ display:none; } }
-
-  /* ── layout ── */
-  main { position:relative; z-index:1; }
-  .wrap { max-width:820px; margin:0 auto; padding:0 1.5rem; }
-
-  /* registration: sections start "un-registered" (offset + faint) and snap in */
-  .reg-block {
-    opacity:0;
-    transform:translateY(26px);
-    filter:blur(6px);
-    transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), filter .7s ease;
-    will-change:opacity,transform,filter;
-  }
-  .reg-block.registered {
-    opacity:1; transform:none; filter:none;
-  }
-  @media (prefers-reduced-motion:reduce){
-    .reg-block{ opacity:1; transform:none; filter:none; transition:none; }
-  }
-
-  /* ── hero ── */
-  .hero { padding:5.5rem 0 3.5rem; }
-  .hero-top {
-    display:flex; gap:3rem; align-items:center; justify-content:space-between;
-  }
-  .hero-text { flex:1; min-width:0; }
-  .hero-photo {
-    width:300px; height:380px; flex-shrink:0;
-    border-radius:14px; object-fit:cover; object-position:center 30%;
-    border:1px solid var(--border-mid);
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
-  }
-  html[data-theme="light"] .hero-photo { box-shadow:0 20px 50px rgba(0,0,0,.16); }
-  @media (max-width:780px){
-    .hero-top { flex-direction:column-reverse; align-items:flex-start; gap:1.8rem; }
-    .hero-photo { width:100%; height:300px; }
-  }
-  .eyebrow {
-    font-family:'IBM Plex Mono',monospace; font-size:11.5px;
-    color:var(--accent); letter-spacing:0.08em; text-transform:uppercase;
-    margin-bottom:1rem; display:flex; align-items:center; gap:.6rem;
-  }
-  .eyebrow::before {
-    content:''; width:7px; height:7px; border-radius:50%;
-    background:var(--accent); box-shadow:0 0 8px var(--accent);
-    animation:pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-  .hero h1 {
-    font-family:'IBM Plex Serif',serif; font-weight:600;
-    font-size:clamp(2.3rem,6vw,3.6rem); line-height:1.05;
-    letter-spacing:-0.02em; margin-bottom:.5rem;
-  }
-  .tagline {
-    font-size:14px; color:var(--text-dim); margin-bottom:1.5rem;
-    letter-spacing:0.04em;
-  }
-  .tagline .sep { color:var(--accent); padding:0 .35rem; }
-  .intro {
-    font-size:1.05rem; max-width:46ch; color:var(--text-dim);
-    margin-bottom:1.8rem;
-  }
-  .intro b { color:var(--text); font-weight:500; }
-
-  .links-row { display:flex; flex-wrap:wrap; gap:.55rem; }
-  .link-chip {
-    font-family:'IBM Plex Mono',monospace; font-size:12px;
-    border:1px solid var(--border-mid); border-radius:6px;
-    padding:.42rem .7rem; color:var(--text-dim);
-    display:inline-flex; align-items:center; gap:.45rem;
-    transition:.16s; background:rgba(13,15,17,.4);
-  }
-  html[data-theme="light"] .link-chip { background:rgba(255,255,255,.5); }
-  .link-chip:hover { color:var(--accent); border-color:var(--accent);
-    transform:translateY(-1px); }
-
-  /* ── section heads as a registration log ── */
-  section { padding:2.6rem 0; }
-  .sec-head {
-    display:flex; align-items:baseline; gap:.7rem; margin-bottom:1.6rem;
-    border-bottom:1px solid var(--border); padding-bottom:.7rem;
-  }
-  .sec-head .idx {
-    font-family:'IBM Plex Mono',monospace; font-size:11px;
-    color:var(--accent-2); letter-spacing:0.03em;
-  }
-  .sec-head h2 {
-    font-family:'IBM Plex Serif',serif; font-weight:600;
-    font-size:1.5rem; letter-spacing:-0.01em;
-  }
-  .sec-head .more {
-    margin-left:auto; font-family:'IBM Plex Mono',monospace;
-    font-size:12px; color:var(--accent); align-self:center;
-  }
-  .sec-head .more:hover { text-decoration:underline; }
-
-  /* ── currently grid ── */
-  .now-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px;
-    background:var(--border); border:1px solid var(--border); }
-  @media (max-width:620px){ .now-grid{ grid-template-columns:1fr; } }
-  .now-card { background:var(--surface); padding:1.2rem 1.3rem;
-    transition:background .2s; }
-  .now-card:hover { background:var(--surface-2); }
-  .now-card .label {
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
-    color:var(--accent); text-transform:uppercase; letter-spacing:0.07em;
-    margin-bottom:.4rem;
-  }
-  .now-card .title { font-weight:500; font-size:.98rem; margin-bottom:.45rem; }
-  .now-card p { font-size:.86rem; color:var(--text-dim); }
-
-  .stack { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1.3rem; }
-  .pill {
-    font-family:'IBM Plex Mono',monospace; font-size:11px;
-    padding:.25rem .55rem; border:1px solid var(--border);
-    border-radius:4px; color:var(--text-dim); background:var(--surface);
-  }
-
-  /* ── projects ── */
-  .proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-  @media (max-width:620px){ .proj-grid{ grid-template-columns:1fr; } }
-  .card {
-    border:1px solid var(--border); border-radius:8px; overflow:hidden;
-    background:var(--surface); display:flex; flex-direction:column;
-    transition:.2s; position:relative;
-  }
-  .card:hover { border-color:var(--accent); transform:translateY(-2px); }
-  .card-media { position:relative; aspect-ratio:16/9; overflow:hidden;
-    background:var(--surface-2); display:grid; place-items:center; }
-  .card-media .ph { color:var(--text-dimmer); font-size:1.6rem;
-    position:absolute; }
-  .card-media img { width:100%; height:100%; object-fit:cover;
-    position:relative; z-index:1; }
-  .card-body { padding:1rem 1.1rem; display:flex; flex-direction:column;
-    flex:1; }
-  .card-meta { font-family:'IBM Plex Mono',monospace; font-size:10.5px;
-    color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em;
-    margin-bottom:.5rem; display:flex; align-items:center; gap:.5rem; }
-  .badge-live {
-    font-size:9px; background:var(--accent-soft); color:var(--accent);
-    padding:.12rem .4rem; border-radius:3px; letter-spacing:0.04em;
-  }
-  .card-title { font-family:'IBM Plex Serif',serif; font-weight:600;
-    font-size:1.08rem; margin-bottom:.35rem; }
-  .card-stack { font-size:11px; color:var(--accent); margin-bottom:.55rem; }
-  .card-desc { font-size:.85rem; color:var(--text-dim); flex:1; }
-  .card-foot { font-family:'IBM Plex Mono',monospace; font-size:10.5px;
-    color:var(--text-dimmer); margin-top:.7rem;
-    border-top:1px solid var(--border); padding-top:.6rem; }
-
-  /* ── timeline as a pose graph ── */
-  .timeline { position:relative; padding-left:1.4rem; }
-  .timeline::before { content:''; position:absolute; left:4px; top:6px;
-    bottom:6px; width:1px; background:var(--border-mid); }
-  .tl-item { position:relative; padding-bottom:1.6rem; }
-  .tl-item::before {
-    content:''; position:absolute; left:-1.4rem; top:6px;
-    width:9px; height:9px; border-radius:50%;
-    background:var(--bg); border:1.5px solid var(--accent);
-  }
-  .tl-item:first-child::before { box-shadow:0 0 9px var(--accent); }
-  .tl-date { font-size:11px; color:var(--accent-2); margin-bottom:.2rem; }
-  .tl-role { font-weight:500; font-size:.98rem; }
-  .tl-org { font-size:11.5px; color:var(--text-dim); margin:.1rem 0 .35rem; }
-  .tl-desc { font-size:.85rem; color:var(--text-dim); max-width:54ch; }
-
-  /* ── blog ── */
-  .blog-list { display:flex; flex-direction:column;
-    border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-  .blog-row { display:flex; justify-content:space-between; align-items:center;
-    padding:.95rem 1.1rem; background:var(--surface);
-    border-bottom:1px solid var(--border); transition:.16s; gap:1rem; }
-  .blog-row:last-child { border-bottom:none; }
-  .blog-row:hover { background:var(--surface-2); padding-left:1.3rem; }
-  .blog-title { font-weight:500; font-size:.95rem; }
-  .blog-sub { font-size:.82rem; color:var(--text-dim); }
-  .blog-date { font-family:'IBM Plex Mono',monospace; font-size:11px;
-    color:var(--text-dimmer); white-space:nowrap; }
-
-  .prose { max-width:54ch; }
-  .prose p { color:var(--text-dim); font-size:1rem; }
-  .prose a { color:var(--accent); border-bottom:1px solid var(--accent-soft); }
-
-  .footer { text-align:center; padding:3rem 1.5rem; font-size:12px;
-    color:var(--text-dimmer); font-family:'IBM Plex Mono',monospace;
-    border-top:1px solid var(--border); position:relative; z-index:1; }
-  .footer a { color:var(--accent); }
-
-  /* ── scene graph ── */
-  .graph-hint { font-size:11.5px; color:var(--text-dim); margin-bottom:.9rem;
-    letter-spacing:0.02em; }
-  .graph-hint span { color:var(--accent); }
-  .graph-wrap {
-    position:relative; width:100%;
-    height:min(560px, 70vh);
-    border:1px solid var(--border); border-radius:10px;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(60,196,124,0.04), transparent 60%),
-      var(--surface);
-    overflow:hidden;
-  }
-  #graph { position:absolute; inset:0; width:100%; height:100%;
-    display:block; cursor:grab; touch-action:none; }
-  #graph:active { cursor:grabbing; }
-
-  .graph-legend {
-    position:absolute; left:.9rem; bottom:.8rem; z-index:3;
-    display:flex; flex-direction:column; gap:.25rem;
-    font-size:10px; color:var(--text-dimmer); pointer-events:none;
-  }
-  .graph-legend .lg-proj { color:var(--accent); }
-  .graph-legend .lg-tool { color:var(--accent-2); }
-  .graph-legend .lg-shared { color:var(--accent); }
-  .graph-legend .lg-unique { color:var(--accent-2); }
-
-  .node-panel {
-    position:absolute; top:.9rem; right:.9rem; z-index:4;
-    width:min(300px, 78%);
-    background:var(--bg); border:1px solid var(--border-mid);
-    border-radius:9px; padding:1.1rem 1.15rem;
-    box-shadow:0 18px 50px rgba(0,0,0,.45);
-    opacity:0; transform:translateY(-8px) scale(.98);
-    pointer-events:none; transition:.22s cubic-bezier(.2,.7,.2,1);
-  }
-  html[data-theme="light"] .node-panel { box-shadow:0 18px 50px rgba(0,0,0,.18); }
-  .node-panel.open { opacity:1; transform:none; pointer-events:auto; }
-  .np-close { position:absolute; top:.5rem; right:.6rem; background:none;
-    border:none; color:var(--text-dimmer); font-size:18px; cursor:pointer;
-    line-height:1; transition:color .15s; }
-  .np-close:hover { color:var(--accent); }
-  .np-kind { font-size:10px; text-transform:uppercase; letter-spacing:0.07em;
-    color:var(--accent); margin-bottom:.4rem; }
-  .np-title { font-family:'IBM Plex Serif',serif; font-weight:600;
-    font-size:1.15rem; margin-bottom:.4rem; padding-right:1rem; }
-  .np-stack { font-size:11px; color:var(--accent-2); margin-bottom:.6rem; }
-  .np-desc { font-size:.85rem; color:var(--text-dim); margin-bottom:.7rem; }
-  .np-foot { font-size:10.5px; color:var(--text-dimmer);
-    border-top:1px solid var(--border); padding-top:.55rem; }
-  .np-link { display:inline-block; margin-top:.6rem; font-size:12px;
-    color:var(--accent); }
-  .np-link:empty { display:none; }
-  .np-link:hover { text-decoration:underline; }
-
-  @media (max-width:560px){
-    .graph-wrap { height:62vh; }
-    .node-panel { width:84%; }
-  }
-
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poorna Sasank Sesetti</title>
+<meta name="description" content="MSc Mobile Robotics student at the University of Bonn. Perception, SLAM, LiDAR and mobile manipulation.">
+<script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/paper.css">
 </head>
 <body>
 
-  <canvas id="cloud"></canvas>
+<canvas id="cloud"></canvas>
 
-  <div class="recon-hud" id="hud">
-    <div>frame <b id="hud-frame">000</b> · <span class="reg">REGISTERED</span></div>
-    <div>points <b id="hud-pts">0000</b> · sections <b id="hud-sec">0</b>/6</div>
-  </div>
+<header class="masthead">
+  <h1><a href="index.html">Poorna Sasank Sesetti</a></h1>
+  <p class="tagline">Robotics, perception, SLAM.</p>
 
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="#top" class="brand">poorna<span>/</span></a>
-      <div class="nav-links">
-        <a href="projects.html">projects</a>
-        <a href="#journey" class="hide-sm">journey</a>
-        <a href="blog/index.html">blog</a>
-        <a href="#contact">contact</a>
-        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun"></i><i class="fa-solid fa-moon"></i>
-        </button>
-      </div>
-    </div>
+  <img class="portrait" src="assets/images/poorna-portrait.jpg" alt="Poorna Sasank Sesetti">
+
+  <nav class="menu">
+    <input id="menu-check" type="checkbox" hidden>
+    <label id="menu-label" for="menu-check" hidden>
+      <span class="icon close-icon">&#10005;</span>
+      <span class="icon open-icon">&#9776;</span>
+      <span class="text">Menu</span>
+    </label>
+    <ul>
+      <li class="active"><a href="index.html">About</a></li>
+      <li><a href="#projects">Project graph</a></li>
+      <li><a href="projects.html">All projects</a></li>
+      <li><a href="blog/index.html">Build log</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
   </nav>
 
-  <main class="wrap" id="top">
+  <p class="aside-note">
+    Bonn, Germany<br>
+    <button class="tog" id="theme-toggle">dark mode</button>
+  </p>
+</header>
 
-    <header class="hero reg-block" data-sec="hero">
-      <div class="hero-top">
-        <div class="hero-text">
-          <div class="eyebrow">MSc Mobile Robotics · University of Bonn</div>
-          <h1>Poorna Sasank Sesetti</h1>
-          <p class="tagline mono">Robotics <span class="sep">/</span> Computer Vision</p>
-          <p class="intro">
-            I build <b>perception and state-estimation systems</b> from first
-            principles: SLAM, LiDAR perception, 3D reconstruction, and
-            open-vocabulary mobile manipulation. This page reconstructs itself
-            the way my pipelines do, sparse points first, structure second.
-          </p>
-          <div class="links-row">
-            <a href="mailto:poorna.sesetti03@gmail.com" class="link-chip"><i class="fa-solid fa-envelope"></i> poorna.sesetti03@gmail.com</a>
-            <a href="https://github.com/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-github"></i> GitHub</a>
-            <a href="https://codeberg.org/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-solid fa-code-branch"></i> Codeberg</a>
-            <a href="https://www.linkedin.com/in/poorna-sasank-b967b7188/" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
-            <a href="https://x.com/spicyram3n_" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-x-twitter"></i> X</a>
-          </div>
-        </div>
-        <img class="hero-photo" src="assets/images/poorna_photo3.jpeg" alt="Poorna Sasank Sesetti">
-      </div>
-    </header>
+<article class="main">
 
-    <section id="now" class="reg-block" data-sec="now">
-      <div class="sec-head">
-        <span class="idx">[01]</span><h2>Currently</h2>
-      </div>
-      <div class="now-grid">
-        <div class="now-card">
-          <div class="label">Building</div>
-          <div class="title">Open-Vocabulary Mobile Manipulation</div>
-          <p>Language-conditioned grasping and navigation on the Toyota HSR. Scene graphs, Nav2 navigation, and a two-phase grasp pipeline. Lab project at Uni Bonn.</p>
-        </div>
-        <div class="now-card">
-          <div class="label">Studying</div>
-          <div class="title">MSc Mobile Robotics</div>
-          <p>Master's at the University of Bonn. Focus: SLAM, LiDAR perception, Computer Vision, and 3D reconstruction.</p>
-        </div>
-        <div class="now-card">
-          <div class="label">Writing</div>
-          <div class="title">casualSfM Build Log</div>
-          <p>A long-form series documenting an incremental Structure-from-Motion pipeline, demystifying the math with the code chapter by chapter.</p>
-        </div>
-        <div class="now-card">
-          <div class="label">Master's Project</div>
-          <div class="title">3D Building Model Reconstruction</div>
-          <p>Merging airborne and mobile LiDAR scans of a 10 km Bonn corridor into one clean point cloud. A streaming PDAL pipeline that processes at scale without loading everything into memory.</p>
-        </div>
-      </div>
-      <div class="stack">
-        <span class="pill">C++17</span><span class="pill">Python</span><span class="pill">Rust</span>
-        <span class="pill">ROS 2</span><span class="pill">OpenCV</span><span class="pill">Eigen</span>
-        <span class="pill">PyTorch</span><span class="pill">Open3D</span><span class="pill">PDAL</span>
-        <span class="pill">MuJoCo</span><span class="pill">Gazebo</span><span class="pill">Docker</span>
-        <span class="pill">Linux</span>
-      </div>
-    </section>
+  <header class="title">
+    <h1>About</h1>
+    <hr>
+  </header>
 
-    <section id="projects" class="reg-block" data-sec="projects">
-      <div class="sec-head">
-        <span class="idx">[02]</span><h2>Projects</h2>
-        <a href="projects.html" class="more">ls -la →</a>
-      </div>
+  <p>
+    I'm Poorna Sasank Sesetti, a master's student in Mobile Robotics at the
+    University of Bonn. I work on perception and state estimation: SLAM, LiDAR
+    processing, 3D reconstruction, and open-vocabulary mobile manipulation.
+  </p>
 
-      <p class="graph-hint mono">
-        the work as a scene graph · <span>drag</span> nodes · <span>click</span> a project to inspect
+  <p>
+    Most of what I build, I build from first principles first &mdash; a filter or a
+    reconstruction pipeline written out by hand before reaching for a library.
+    It is the only way I have found to understand the failure modes rather than
+    just the API. That work gets written down in the
+    <a href="blog/index.html">build log</a>.
+  </p>
+
+  <p>
+    Before Bonn I was a research assistant at the Robotics Research Center,
+    IIIT Hyderabad, and a ROS 2 developer at HILD Defence &amp; Aerospace.
+    I'm currently open to working-student positions and robotics engineering roles.
+  </p>
+
+  <div class="social-links">
+    <a class="social-link" href="mailto:poorna.sesetti03@gmail.com" aria-label="Email" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3 6.5 9 6.5 9-6.5"/></svg></a>
+    <a class="social-link" href="https://github.com/spicyram3n" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+    <a class="social-link" href="https://www.linkedin.com/in/poorna-sasank-b967b7188/" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+    <a class="social-link" href="https://x.com/spicyram3n_" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+    <a class="social-link" href="https://codeberg.org/spicyram3n" aria-label="Codeberg" title="Codeberg"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M11.955.49A12 12 0 0 0 0 12.49a12 12 0 0 0 1.832 6.373L11.838 5.928a.187.14 0 0 1 .324 0l10.006 12.935A12 12 0 0 0 24 12.49a12 12 0 0 0-12-12 12 12 0 0 0-.045 0zm.375 6.467l4.416 16.553a12 12 0 0 0 5.137-4.213z"/></svg></a>
+  </div>
+
+  <h3 id="now">What I'm working on</h3>
+
+  <dl class="rows">
+    <dt>building</dt>
+    <dd>
+      <span class="what">Open-vocabulary mobile manipulation</span>
+      <p>Language-conditioned grasping and navigation on the Toyota HSR. Scene
+        graphs, Nav2, and a two-phase grasp pipeline. Lab project at Uni Bonn.</p>
+    </dd>
+
+    <dt>master's project</dt>
+    <dd>
+      <span class="what">3D building model reconstruction</span>
+      <p>Merging airborne and mobile LiDAR scans of a 10 km Bonn corridor into one
+        clean point cloud, with a streaming PDAL pipeline that never holds it all
+        in memory.</p>
+    </dd>
+
+    <dt>writing</dt>
+    <dd>
+      <span class="what"><a href="blog/index.html">casualSfM build log</a></span>
+      <p>An incremental Structure-from-Motion pipeline taken apart chapter by
+        chapter, with the maths set beside the code.</p>
+    </dd>
+
+    <dt>reading</dt>
+    <dd>
+      <span class="what">Probabilistic Robotics</span>
+      <p>Thrun, Burgard and Fox. Working the filters out on paper, then in code.</p>
+    </dd>
+  </dl>
+
+  <p class="note">
+    Day to day: C++17, Python, Rust, ROS 2, OpenCV, Eigen, PyTorch, Open3D, PDAL,
+    MuJoCo, Gazebo, Docker, Linux.
+  </p>
+
+  <hr>
+
+  <h3 id="projects">Project graph</h3>
+
+  <p>
+    Here is the work as a graph. Large dots are projects, small ones are the
+    tools and methods they are built from, so anything two projects share pulls
+    them together. Drag a node to move it, click one to read about it.
+  </p>
+
+  <div class="graph-wrap">
+    <canvas id="graph" aria-label="Interactive graph of projects and the tools they share"></canvas>
+    <div class="graph-legend">
+      <div><span class="lg-proj">&#9679;</span> project</div>
+      <div><span class="lg-tool">&#9679;</span> tool / method</div>
+    </div>
+    <aside class="node-panel" id="node-panel" aria-live="polite">
+      <button class="np-close" id="np-close" aria-label="Close">&times;</button>
+      <div class="np-kind" id="np-kind"></div>
+      <div class="np-title" id="np-title"></div>
+      <div class="np-stack" id="np-stack"></div>
+      <p class="np-desc" id="np-desc"></p>
+      <div class="np-foot" id="np-foot"></div>
+      <a class="np-link" id="np-link"></a>
+    </aside>
+  </div>
+
+  <p class="note centered">
+    The same four as a list, with pictures and everything else, is on the
+    <a href="projects.html">projects page</a>.
+  </p>
+
+  <hr>
+
+  <h3 id="publications">Publications</h3>
+
+  <article class="pub">
+    <div class="pub-figure">
+      <img src="assets/images/wireflie-web.jpg"
+           alt="The WireFlie prototype: a quadrotor with a pair of underactuated arms clamped onto an overhead line">
+    </div>
+    <div class="pub-body">
+      <div class="pub-venue">IEEE RA-L &middot; vol. 10, no. 6 &middot; June 2025</div>
+      <h4 class="pub-title">WireFlie: A Novel Obstacle-Overcoming Mechanism for
+        Autonomous Transmission Line Inspection Drones</h4>
+      <p class="pub-authors">
+        Aditya Sehgal, Zahiruddin Mahammad,
+        <span class="me">Poorna Sasank Sesetti</span>,
+        Ankur Badhwar, Nagamanikandan Govindan
       </p>
-
-      <div class="graph-wrap">
-        <canvas id="graph" aria-label="Interactive scene graph of projects"></canvas>
-
-        <!-- node legend / fallback list (also serves no-JS + screen readers) -->
-        <div class="graph-legend mono">
-          <span class="lg lg-proj">● project</span>
-          <span class="lg lg-tool">● tool / method</span>
-          <span class="lg lg-shared">— shared by many</span>
-          <span class="lg lg-unique">— unique to one</span>
-        </div>
-
-        <!-- detail panel, resolves on node click -->
-        <aside class="node-panel" id="node-panel" aria-live="polite">
-          <button class="np-close" id="np-close" aria-label="Close">×</button>
-          <div class="np-kind mono" id="np-kind"></div>
-          <h3 class="np-title" id="np-title"></h3>
-          <div class="np-stack mono" id="np-stack"></div>
-          <p class="np-desc" id="np-desc"></p>
-          <div class="np-foot mono" id="np-foot"></div>
-          <a class="np-link mono" id="np-link" target="_blank" rel="noopener"></a>
-        </aside>
+      <p class="pub-desc">
+        A hybrid rolling-and-flying inspection robot: underactuated arms lock onto the
+        line to roll past dampers and spacers, and it flies over the pylons it cannot
+        roll through.
+      </p>
+      <div class="pub-links">
+        <a href="https://doi.org/10.1109/LRA.2025.3565378" target="_blank"
+          rel="noopener noreferrer">DOI</a>
+        <a href="https://ieeexplore.ieee.org/document/10979907/" target="_blank"
+           rel="noopener noreferrer">IEEE Xplore</a>
       </div>
+    </div>
+  </article>
 
-      <!-- accessible fallback: real links, hidden when canvas is active -->
-      <noscript>
-        <div class="proj-grid" style="margin-top:1rem">
-          <div class="card"><div class="card-body"><div class="card-title">Open-Vocab Mobile Manipulation</div><p class="card-desc">Toyota HSR. Scene graph, Dockerised inference, AnyGrasp pipeline.</p></div></div>
-          <div class="card"><div class="card-body"><div class="card-title">Geospatial LiDAR Pipeline</div><p class="card-desc">Streaming point-cloud processing over a 10 km Bonn corridor.</p></div></div>
-          <a href="https://github.com/spicyram3n/CasualSfM" class="card"><div class="card-body"><div class="card-title">CasualSfM</div><p class="card-desc">Incremental Structure-from-Motion in Python.</p></div></a>
-          <div class="card"><div class="card-body"><div class="card-title">EKF SLAM (slam-factory)</div><p class="card-desc">Filter-based SLAM framework with a thin ROS 2 wrapper.</p></div></div>
-        </div>
-      </noscript>
-    </section>
+  <h3 id="background">Background</h3>
 
-    <section id="journey" class="reg-block" data-sec="journey">
-      <div class="sec-head">
-        <span class="idx">[03]</span><h2>Journey</h2>
-      </div>
-      <div class="timeline">
-        <div class="tl-item">
-          <div class="tl-date mono">Oct 2025 — present</div>
-          <div class="tl-role">MSc Mobile Robotics</div>
-          <div class="tl-org mono">University of Bonn, Germany</div>
-          <div class="tl-desc">Visual SLAM, LiDAR perception, 3D reconstruction, multi-object tracking. Lab work on open-vocabulary mobile manipulation with the Toyota HSR.</div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-date mono">Dec 2025</div>
-          <div class="tl-role">Won the Ideas Competition (Team Baggins)</div>
-          <div class="tl-org mono">enaCom Transfer Center, University of Bonn</div>
-          <div class="tl-desc">Pitched in the final at DIGITALHUB.DE and took a 1,000 euro prize, a few months after arriving in Germany. A five-minute pitch format that taught me to communicate an idea with real clarity and precision.</div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-date mono">Jun 2025</div>
-          <div class="tl-role">ROS 2 Developer</div>
-          <div class="tl-org mono">HILD Defence &amp; Aerospace</div>
-          <div class="tl-desc">Robotics software development on ROS 2. Perception and control for autonomous platforms.</div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-date mono">May 2025</div>
-          <div class="tl-role">IEEE RA-L Publication: <em>WireFlie</em></div>
-          <div class="tl-org mono">Robotics Research Center, IIIT Hyderabad</div>
-          <div class="tl-desc">Co-authored a Robotics and Automation Letters paper on a novel drone mechanism, as a research assistant.</div>
-        </div>
-      </div>
-    </section>
+  <dl class="rows">
+    <dt>Oct 2025 &ndash;</dt>
+    <dd>
+      <span class="what">MSc Mobile Robotics</span>, University of Bonn
+      <p>Visual SLAM, LiDAR perception, 3D reconstruction, multi-object tracking.
+        Lab work on open-vocabulary mobile manipulation with the Toyota HSR.</p>
+    </dd>
 
-    <section id="blog" class="reg-block" data-sec="blog">
-      <div class="sec-head">
-        <span class="idx">[04]</span><h2>From the Build Log</h2>
-        <a href="blog/index.html" class="more">all posts →</a>
-      </div>
-      <div class="blog-list">
-        <a href="blog/casual-sfm/ch4.html" class="blog-row">
-          <div><div class="blog-title">Ch 04: Evaluation &amp; Visualisation</div>
-          <div class="blog-sub">Reprojection error and inspecting the reconstruction with Rerun</div></div>
-          <span class="blog-date">Apr 2026</span>
-        </a>
-        <a href="blog/casual-sfm/ch3.html" class="blog-row">
-          <div><div class="blog-title">Ch 03: Pose Recovery &amp; Triangulation</div>
-          <div class="blog-sub">From the essential matrix to 3D points</div></div>
-          <span class="blog-date">Apr 2026</span>
-        </a>
-        <a href="blog/casual-sfm/ch2.html" class="blog-row">
-          <div><div class="blog-title">Ch 02: The Fundamental Matrix</div>
-          <div class="blog-sub">Normalised 8-point algorithm and RANSAC</div></div>
-          <span class="blog-date">Mar 2026</span>
-        </a>
-        <a href="blog/casual-sfm/ch1.html" class="blog-row">
-          <div><div class="blog-title">Ch 01: Feature Detection &amp; Matching</div>
-          <div class="blog-sub">SIFT, descriptors, and the ratio test</div></div>
-          <span class="blog-date">Feb 2026</span>
-        </a>
-      </div>
-    </section>
+    <dt>Dec 2025</dt>
+    <dd>
+      <span class="what">Won the Ideas Competition</span>, enaCom Transfer Center, Uni Bonn
+      <p>Team Baggins. Pitched in the final at DIGITALHUB.DE and took a &euro;1,000
+        prize, a few months after arriving in Germany.</p>
+    </dd>
 
-    <section id="contact" class="reg-block" data-sec="contact">
-      <div class="sec-head">
-        <span class="idx">[05]</span><h2>Get in touch</h2>
-      </div>
-      <div class="prose">
-        <p>I'm always up for conversations about robotics, perception systems, or
-        collaborations, and currently open to working student and robotics
-        engineering roles. The fastest way to reach me is
-        <a href="mailto:poorna.sesetti03@gmail.com">email</a>.</p>
-      </div>
-      <div class="links-row" style="margin-top:1rem">
-        <a href="mailto:poorna.sesetti03@gmail.com" class="link-chip"><i class="fa-solid fa-envelope"></i> poorna.sesetti03@gmail.com</a>
-        <a href="https://github.com/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-github"></i> GitHub</a>
-        <a href="https://codeberg.org/spicyram3n" target="_blank" rel="noopener" class="link-chip"><i class="fa-solid fa-code-branch"></i> Codeberg</a>
-        <a href="https://www.linkedin.com/in/poorna-sasank-b967b7188/" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
-        <a href="https://x.com/spicyram3n_" target="_blank" rel="noopener" class="link-chip"><i class="fa-brands fa-x-twitter"></i> X</a>
-      </div>
-    </section>
+    <dt>Jun 2025</dt>
+    <dd>
+      <span class="what">ROS 2 Developer</span>, HILD Defence &amp; Aerospace
+      <p>Robotics software on ROS 2: perception and control for autonomous platforms.</p>
+    </dd>
 
-  </main>
+    <dt>&ndash; May 2025</dt>
+    <dd>
+      <span class="what">Research Assistant</span>, Robotics Research Center, IIIT Hyderabad
+      <p>Drone mechanism design and experiments, leading to the RA-L paper above.</p>
+    </dd>
+  </dl>
 
-  <footer class="footer">
-    © 2026 Poorna Sasank Sesetti · Bonn, Germany ·
-    <a href="https://github.com/spicyram3n" target="_blank" rel="noopener">Source</a>
+  <h3 id="writing">Recent writing</h3>
+
+  <ul>
+    <li><a href="blog/casual-sfm/ch4.html">Ch 04 &mdash; Evaluation &amp; visualisation</a>
+      <span class="note">&middot; Apr 2026</span></li>
+    <li><a href="blog/casual-sfm/ch3.html">Ch 03 &mdash; Pose recovery &amp; triangulation</a>
+      <span class="note">&middot; Apr 2026</span></li>
+    <li><a href="blog/casual-sfm/ch2.html">Ch 02 &mdash; The fundamental matrix</a>
+      <span class="note">&middot; Mar 2026</span></li>
+    <li><a href="blog/casual-sfm/ch1.html">Ch 01 &mdash; Feature detection &amp; matching</a>
+      <span class="note">&middot; Feb 2026</span></li>
+  </ul>
+
+  <h3 id="contact">Contact</h3>
+
+  <p>
+    Email is the fastest way to reach me, and I'm always happy to talk about
+    robotics, perception, or a collaboration:
+    <a href="mailto:poorna.sesetti03@gmail.com">poorna.sesetti03@gmail.com</a>
+  </p>
+
+  <div class="social-links">
+    <a class="social-link" href="mailto:poorna.sesetti03@gmail.com" aria-label="Email" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3 6.5 9 6.5 9-6.5"/></svg></a>
+    <a class="social-link" href="https://github.com/spicyram3n" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+    <a class="social-link" href="https://www.linkedin.com/in/poorna-sasank-b967b7188/" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+    <a class="social-link" href="https://x.com/spicyram3n_" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+    <a class="social-link" href="https://codeberg.org/spicyram3n" aria-label="Codeberg" title="Codeberg"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M11.955.49A12 12 0 0 0 0 12.49a12 12 0 0 0 1.832 6.373L11.838 5.928a.187.14 0 0 1 .324 0l10.006 12.935A12 12 0 0 0 24 12.49a12 12 0 0 0-12-12 12 12 0 0 0-.045 0zm.375 6.467l4.416 16.553a12 12 0 0 0 5.137-4.213z"/></svg></a>
+  </div>
+
+  <footer>
+    <hr>
+    <div class="copyright"><sub>&copy;
+      <a href="index.html">Poorna Sasank Sesetti</a> 2026 |
+      <a href="https://github.com/spicyram3n/personal-portfolio">source</a>
+    </sub></div>
   </footer>
 
-  <script>
-  /* theme toggle */
-  (function () {
-    var btn = document.getElementById('theme-toggle');
-    btn && btn.addEventListener('click', function () {
-      var cur = document.documentElement.getAttribute('data-theme');
-      var next = cur === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('ps-theme', next); } catch (e) {}
-    });
-  })();
+</article>
 
-  /* ============================================================
-     point-cloud field. A drifting set of points with a sparse
-     covisibility graph between near neighbours. Points near the
-     cursor "light up" as if observed. Respects reduced-motion.
-     ============================================================ */
-  (function () {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var cv = document.getElementById('cloud');
-    var ctx = cv.getContext('2d');
-    var DPR = Math.min(window.devicePixelRatio || 1, 2);
-    var W, H, pts = [], N;
-
-    function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-    var col = {};
-    function readColors(){
-      col.point = css('--point');
-      col.lit   = css('--point-lit');
-      col.edge  = css('--border');
-    }
-
-    function resize(){
-      W = cv.width = innerWidth * DPR;
-      H = cv.height = innerHeight * DPR;
-      cv.style.width = innerWidth + 'px';
-      cv.style.height = innerHeight + 'px';
-      N = Math.min(160, Math.floor(innerWidth / 9));
-      pts = [];
-      for (var i=0;i<N;i++){
-        pts.push({
-          x: Math.random()*W, y: Math.random()*H,
-          z: Math.random(),
-          vx: (Math.random()-0.5)*0.18*DPR,
-          vy: (Math.random()-0.5)*0.18*DPR
-        });
-      }
-    }
-
-    var mouse = { x:-9999, y:-9999 };
-    window.addEventListener('pointermove', function(e){
-      mouse.x = e.clientX*DPR; mouse.y = e.clientY*DPR;
-    });
-    window.addEventListener('pointerleave', function(){ mouse.x=mouse.y=-9999; });
-
-    function frame(){
-      ctx.clearRect(0,0,W,H);
-      var linkD = 120*DPR, linkD2 = linkD*linkD;
-
-      for (var i=0;i<N;i++){
-        var p = pts[i];
-        p.x += p.vx; p.y += p.vy;
-        if (p.x<0) p.x+=W; if (p.x>W) p.x-=W;
-        if (p.y<0) p.y+=H; if (p.y>H) p.y-=H;
-        for (var j=i+1;j<N;j++){
-          var q = pts[j];
-          var dx=p.x-q.x, dy=p.y-q.y, d2=dx*dx+dy*dy;
-          if (d2 < linkD2){
-            var a = (1 - d2/linkD2) * 0.5;
-            ctx.strokeStyle = col.edge;
-            ctx.globalAlpha = a * 0.6;
-            ctx.lineWidth = 0.6*DPR;
-            ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
-          }
-        }
-      }
-      ctx.globalAlpha = 1;
-
-      for (var k=0;k<N;k++){
-        var pt = pts[k];
-        var mdx = pt.x-mouse.x, mdy = pt.y-mouse.y;
-        var near = (mdx*mdx+mdy*mdy) < (140*DPR*140*DPR);
-        var r = (0.7 + pt.z*1.5) * DPR * (near?1.8:1);
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, r, 0, Math.PI*2);
-        ctx.fillStyle = near ? col.lit : col.point;
-        ctx.globalAlpha = near ? 0.95 : (0.35 + pt.z*0.4);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      if (!reduce) requestAnimationFrame(frame);
-    }
-
-    readColors(); resize();
-    window.addEventListener('resize', function(){ readColors(); resize(); if(reduce) frame(); });
-    var mo = new MutationObserver(function(){ readColors(); if(reduce) frame(); });
-    mo.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
-    frame();
-  })();
-
-  /* ============================================================
-     scene graph: projects + shared tools as nodes, force-directed.
-     Project nodes link to the tools/methods they depend on; tools
-     shared by multiple projects pull those projects together,
-     surfacing the real structure of the work. Draggable, clickable.
-     ============================================================ */
-  (function () {
-    var cv = document.getElementById('graph');
-    if (!cv) return;
-    var ctx = cv.getContext('2d');
-    var DPR = Math.min(window.devicePixelRatio || 1, 2);
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-    var col = {};
-    function readColors(){
-      col.proj  = css('--accent');
-      col.tool  = css('--accent-2');
-      col.edge  = css('--border-mid');
-      col.edgeShared = css('--accent');      // green: tool used by many projects
-      col.edgeUnique = css('--accent-2');     // cyan: tool unique to one project
-      col.text  = css('--text');
-      col.dim   = css('--text-dim');
-      col.bg    = css('--bg');
-    }
-
-    // ── data: projects (with detail) + tool nodes ──
-    var projects = [
-      { id:'ovmm', label:'Open-Vocab Mobile Manipulation', kind:'project',
-        meta:'Robotics · Lab Project · Ongoing',
-        stack:'ROS 2 · Mask3D · SAM 3 · Nav2 · AnyGrasp',
-        desc:'Open-vocabulary manipulation on the Toyota HSR. Scene graph from iPad scans, Dockerised inference over HTTP, geometric → AnyGrasp pipeline.',
-        foot:'work in progress · University of Bonn', link:'', linkText:'',
-        tools:['ros2','mask3d','sam3','nav2','anygrasp','docker','scenegraph'] },
-      { id:'moro', label:'Geospatial LiDAR Pipeline', kind:'project',
-        meta:'3D · LiDAR · Master\u2019s Project · Ongoing',
-        stack:'PDAL · Open3D · SMRF · CloudCompare',
-        desc:'Streaming point-cloud processing over a 10 km Bonn corridor (ALS + MMS). GPU tensor ops, ground filtering, parallel tiled processing.',
-        foot:'work in progress · University of Bonn', link:'', linkText:'',
-        tools:['pdal','open3d','smrf','pointcloud','cpp'] },
-      { id:'sfm', label:'CasualSfM', kind:'project',
-        meta:'Vision · Reconstruction · Personal',
-        stack:'Python · OpenCV · NumPy',
-        desc:'Incremental Structure-from-Motion. SIFT matching, RANSAC essential matrix, triangulation, bundle adjustment. Documented as a blog series.',
-        foot:'GitHub · Personal Project',
-        link:'https://github.com/spicyram3n/CasualSfM', linkText:'github.com/spicyram3n/CasualSfM →',
-        tools:['python','opencv','numpy','reconstruction','sfm'] },
-      { id:'ekf', label:'EKF SLAM (slam-factory)', kind:'project',
-        meta:'Robotics · SLAM · Personal · Ongoing',
-        stack:'Python · ROS 2 · NumPy',
-        desc:'Filter-based SLAM framework with a clean Python core and a thin ROS 2 wrapper. 25-test suite, documented after Thrun\u2019s Probabilistic Robotics.',
-        foot:'work in progress · Personal Project', link:'', linkText:'',
-        tools:['python','ros2','numpy','slam'] }
-    ];
-
-    var toolLabels = {
-      ros2:'ROS 2', mask3d:'Mask3D', sam3:'SAM 3', nav2:'Nav2',
-      anygrasp:'AnyGrasp', docker:'Docker', scenegraph:'Scene Graph',
-      pdal:'PDAL', open3d:'Open3D', smrf:'SMRF', pointcloud:'Point Cloud',
-      cpp:'C++17', python:'Python', opencv:'OpenCV', numpy:'NumPy',
-      reconstruction:'3D Recon', sfm:'SfM', slam:'SLAM'
-    };
-
-    // build node + edge lists
-    var nodes = [], nodeIndex = {}, edges = [];
-    function addNode(id, label, kind, data){
-      if (nodeIndex[id]!=null) return nodeIndex[id];
-      var n = { id:id, label:label, kind:kind, data:data||null,
-        x: cv.clientWidth/2 + (Math.random()-0.5)*200,
-        y: cv.clientHeight/2 + (Math.random()-0.5)*160,
-        vx:0, vy:0, r: kind==='project'?9:5, deg:0, fx:null, fy:null };
-      nodeIndex[id] = nodes.length; nodes.push(n); return nodeIndex[id];
-    }
-    projects.forEach(function(p){ addNode(p.id, p.label, 'project', p); });
-    projects.forEach(function(p){
-      p.tools.forEach(function(t){
-        addNode(t, toolLabels[t]||t, 'tool');
-        edges.push([nodeIndex[p.id], nodeIndex[t]]);
-        nodes[nodeIndex[p.id]].deg++; nodes[nodeIndex[t]].deg++;
-      });
-    });
-    // tool radius grows with how many projects share it (support score)
-    nodes.forEach(function(n){ if(n.kind==='tool') n.r = 4 + Math.min(n.deg,4)*1.6; });
-    // tag each edge: does its tool endpoint connect more than one project?
-    edges.forEach(function(e){
-      var tool = nodes[e[1]];                 // e[1] is always the tool endpoint
-      e.shared = tool.kind==='tool' && tool.deg > 1;
-    });
-
-    var W, H;
-    function resize(){
-      W = cv.clientWidth; H = cv.clientHeight;
-      cv.width = W*DPR; cv.height = H*DPR;
-      ctx.setTransform(DPR,0,0,DPR,0,0);
-    }
-
-    // ── physics ──
-    function step(){
-      var cx=W/2, cy=H/2;
-      // repulsion
-      for (var i=0;i<nodes.length;i++){
-        var a=nodes[i];
-        for (var j=i+1;j<nodes.length;j++){
-          var b=nodes[j];
-          var dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy || 0.01;
-          var d=Math.sqrt(d2);
-          var f = (a.kind==='project'&&b.kind==='project'?2600:1400)/d2;
-          var fx=dx/d*f, fy=dy/d*f;
-          a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
-        }
-      }
-      // spring along edges
-      edges.forEach(function(e){
-        var a=nodes[e[0]], b=nodes[e[1]];
-        var dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||0.01;
-        var rest=78, k=0.012;
-        var f=(d-rest)*k; var fx=dx/d*f, fy=dy/d*f;
-        a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
-      });
-      // gravity to center + integrate
-      nodes.forEach(function(n){
-        n.vx += (cx-n.x)*0.0016; n.vy += (cy-n.y)*0.0016;
-        n.vx*=0.86; n.vy*=0.86;
-        if (n.fx!=null){ n.x=n.fx; n.y=n.fy; n.vx=n.vy=0; }
-        else { n.x+=n.vx; n.y+=n.vy; }
-        var m=14;
-        n.x=Math.max(m,Math.min(W-m,n.x));
-        n.y=Math.max(m,Math.min(H-m,n.y));
-      });
-    }
-
-    var hover=null, selected=null;
-    function draw(){
-      ctx.clearRect(0,0,W,H);
-      // edges
-      edges.forEach(function(e){
-        var a=nodes[e[0]], b=nodes[e[1]];
-        var lit = selected && (e[0]===selIdx()||e[1]===selIdx());
-        var hl  = hover && (a===hover||b===hover);
-        var active = lit || hl;
-        // idle: two-color by whether the tool is shared across projects
-        var base = e.shared ? col.edgeShared : col.edgeUnique;
-        ctx.strokeStyle = base;
-        ctx.globalAlpha = active ? 0.85 : (e.shared ? 0.45 : 0.3);
-        ctx.lineWidth   = active ? 1.6 : (e.shared ? 1.1 : 0.8);
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-      });
-      ctx.globalAlpha=1;
-      // nodes
-      nodes.forEach(function(n){
-        var isSel = (n===selected), isHov=(n===hover);
-        var c = n.kind==='project'? col.proj : col.tool;
-        if (isSel||isHov){
-          ctx.beginPath(); ctx.arc(n.x,n.y,n.r+5,0,7); 
-          ctx.fillStyle=c; ctx.globalAlpha=0.16; ctx.fill(); ctx.globalAlpha=1;
-        }
-        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,7);
-        ctx.fillStyle = c; ctx.fill();
-        if (n.kind==='project'){
-          ctx.lineWidth=1.5; ctx.strokeStyle=col.bg; ctx.stroke();
-        }
-        // labels: projects always, tools on hover/select/proximity
-        if (n.kind==='project' || isHov || isSel){
-          ctx.font = (n.kind==='project'?'600 12px ':'400 10.5px ')+"'IBM Plex Mono',monospace";
-          ctx.fillStyle = n.kind==='project'? col.text : col.dim;
-          ctx.globalAlpha = n.kind==='project'? 1 : 0.95;
-          ctx.textAlign='center';
-          var label = n.label.length>26? n.label.slice(0,24)+'…' : n.label;
-          ctx.fillText(label, n.x, n.y - n.r - 7);
-          ctx.globalAlpha=1;
-        }
-      });
-    }
-    function selIdx(){ return selected? nodeIndex[selected.id] : -1; }
-
-    var raf;
-    function loop(){ step(); draw(); raf=requestAnimationFrame(loop); }
-
-    // ── interaction ──
-    function pos(e){
-      var r=cv.getBoundingClientRect();
-      var t = e.touches? e.touches[0] : e;
-      return { x:t.clientX-r.left, y:t.clientY-r.top };
-    }
-    function pick(p){
-      for (var i=nodes.length-1;i>=0;i--){
-        var n=nodes[i], dx=p.x-n.x, dy=p.y-n.y;
-        if (dx*dx+dy*dy <= (n.r+6)*(n.r+6)) return n;
-      }
-      return null;
-    }
-    var drag=null, dragMoved=false;
-    cv.addEventListener('pointermove', function(e){
-      var p=pos(e);
-      if (drag){ drag.fx=p.x; drag.fy=p.y; dragMoved=true; return; }
-      var h=pick(p); 
-      if (h!==hover){ hover=h; cv.style.cursor=h?'pointer':'grab'; }
-    });
-    cv.addEventListener('pointerdown', function(e){
-      var p=pos(e); var n=pick(p);
-      if (n){ drag=n; n.fx=p.x; n.fy=p.y; dragMoved=false; cv.setPointerCapture(e.pointerId); }
-    });
-    cv.addEventListener('pointerup', function(e){
-      if (drag){
-        if (!dragMoved){ openPanel(drag); }
-        drag.fx=drag.fy=null; drag=null;
-      }
-    });
-    cv.addEventListener('pointerleave', function(){ hover=null; });
-
-    // ── detail panel ──
-    var panel=document.getElementById('node-panel');
-    var pk=document.getElementById('np-kind'), pt=document.getElementById('np-title'),
-        ps=document.getElementById('np-stack'), pd=document.getElementById('np-desc'),
-        pf=document.getElementById('np-foot'), pl=document.getElementById('np-link');
-    function openPanel(n){
-      selected=n;
-      if (n.kind==='project' && n.data){
-        var d=n.data;
-        pk.textContent=d.meta; pt.textContent=d.label;
-        ps.textContent=d.stack; pd.textContent=d.desc; pf.textContent=d.foot;
-        if (d.link){ pl.textContent=d.linkText; pl.href=d.link; }
-        else pl.textContent='';
-      } else {
-        // tool node: show what it connects
-        var usedBy = projects.filter(function(p){ return p.tools.indexOf(n.id)>=0; })
-                            .map(function(p){ return p.label; });
-        pk.textContent='tool / method';
-        pt.textContent=n.label;
-        ps.textContent='shared by '+usedBy.length+' project'+(usedBy.length>1?'s':'');
-        pd.textContent=usedBy.join(' · ');
-        pf.textContent='node degree '+n.deg; pl.textContent='';
-      }
-      panel.classList.add('open');
-    }
-    document.getElementById('np-close').addEventListener('click', function(){
-      panel.classList.remove('open'); selected=null;
-    });
-
-    readColors(); resize();
-    new ResizeObserver(function(){ resize(); }).observe(cv);
-    new MutationObserver(readColors).observe(document.documentElement,
-      { attributes:true, attributeFilter:['data-theme'] });
-
-    if (reduce){
-      // settle without animation, draw once
-      for (var s=0;s<240;s++) step();
-      draw();
-    } else {
-      loop();
-    }
-  })();
-
-  /* ============================================================
-     registration: each section snaps into the global frame when
-     it enters view, and drives the corner HUD readout.
-     ============================================================ */
-  (function () {
-    var hudFrame = document.getElementById('hud-frame');
-    var hudPts   = document.getElementById('hud-pts');
-    var hudSec   = document.getElementById('hud-sec');
-    var blocks = Array.prototype.slice.call(document.querySelectorAll('.reg-block'));
-    var registered = 0;
-    var basePts = 1284;
-
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if (en.isIntersecting && !en.target.classList.contains('registered')){
-          en.target.classList.add('registered');
-          registered++;
-          if (hudSec) hudSec.textContent = registered;
-          if (hudPts) hudPts.textContent = String(basePts + registered*617).padStart(4,'0');
-        }
-      });
-    }, { threshold:0.18, rootMargin:'0px 0px -8% 0px' });
-    blocks.forEach(function(b){ io.observe(b); });
-
-    var f = 0, ticking=false;
-    function bump(){
-      f = (f+1) % 1000;
-      if (hudFrame) hudFrame.textContent = String(f).padStart(3,'0');
-      ticking=false;
-    }
-    window.addEventListener('scroll', function(){
-      if(!ticking){ requestAnimationFrame(bump); ticking=true; }
-    }, { passive:true });
-  })();
-  </script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/graph.js"></script>
 </body>
 </html>

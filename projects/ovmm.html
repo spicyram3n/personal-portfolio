@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open-Vocab Mobile Manipulation - Poorna Sasank Sesetti</title>
+<meta name="description" content="Language-conditioned grasping on the Toyota HSR, driven by a scene graph.">
+<script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/paper.css">
+</head>
+<body>
+
+<canvas id="cloud"></canvas>
+
+<header class="masthead">
+  <h1><a href="../index.html">Poorna Sasank Sesetti</a></h1>
+  <p class="tagline">Robotics, perception, SLAM.</p>
+
+  <img class="portrait" src="../assets/images/poorna-portrait.jpg" alt="Poorna Sasank Sesetti">
+
+  <nav class="menu">
+    <input id="menu-check" type="checkbox" hidden>
+    <label id="menu-label" for="menu-check" hidden>
+      <span class="icon close-icon">&#10005;</span>
+      <span class="icon open-icon">&#9776;</span>
+      <span class="text">Menu</span>
+    </label>
+    <ul>
+      <li><a href="../index.html">About</a></li>
+      <li><a href="../index.html#projects">Project graph</a></li>
+      <li class="active"><a href="../projects.html">All projects</a></li>
+      <li><a href="../blog/index.html">Build log</a></li>
+      <li><a href="../index.html#publications">Publications</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <p class="aside-note">
+    Bonn, Germany<br>
+    <button class="tog" id="theme-toggle">dark mode</button>
+  </p>
+</header>
+
+<article class="main">
+
+  <header class="title">
+    <h1>Open-Vocab Mobile Manipulation</h1>
+    <hr>
+  </header>
+
+  <p class="detail-meta">Robotics · 2026 – present · lab project, University of Bonn<br>ROS 2 · Mask3D · SAM 3 · Nav2 · AnyGrasp · Docker</p>
+
+  <p class="detail-hero"><img src="../assets/media/projects/hsr-ovmm-web.jpg" alt="Toyota HSR reaching for an object in a living room, with its scene graph overlaid"></p>
+  <p>You tell the robot what to fetch in plain language. It has to work out which object you meant in a room it has only scanned once, drive there, and pick the thing up. No fixed object list, no per-object training.</p>
+
+  <p>The room is represented as a <strong>scene graph</strong> built from an iPad scan. Mask3D and SAM 3 segment the scan into instances, each becoming a node with a label and a pose, so a phrase like <em>the red cup on the sofa</em> resolves to a node and a coordinate rather than to a pixel in a live camera frame.</p>
+
+  <p>Inference runs in <strong>Dockerised containers that talk over HTTP</strong>. The heavy models stay off the robot's runtime and can be versioned and restarted independently of the control stack, which matters when the segmentation model changes more often than the robot does.</p>
+
+  <p>Grasping is two-phase: a geometric proposal first, since most household objects do not need anything cleverer, and <strong>AnyGrasp</strong> when the geometry is ambiguous. Navigation is Nav2.</p>
+
+  <p>The core is pure Python with ROS 2 as a thin adapter around it, so the interesting parts can be tested without a robot in the loop. Work in progress.</p>
+
+  <p class="note centered back-link"><a href="../projects.html">&larr; All projects</a></p>
+
+  <footer>
+    <hr>
+    <div class="copyright"><sub>&copy;
+      <a href="../index.html">Poorna Sasank Sesetti</a> 2026 |
+      <a href="https://github.com/spicyram3n/personal-portfolio">source</a>
+    </sub></div>
+  </footer>
+
+</article>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

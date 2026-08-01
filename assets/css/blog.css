@@ -1,0 +1,298 @@
+/* ==========================================================================
+   blog.css — the build log stands on its own.
+
+   No masthead, no portrait, no menu, no point cloud. One centred reading
+   column in the shape a maths or science blog takes, and a single visible
+   button back to the portfolio.
+   ========================================================================== */
+
+/* same palette as the portfolio, so it still reads as the same author's site */
+html[data-theme="light"], :root {
+  --bg:      #ffffff;
+  --text:    #000000;
+  --dim:     #555555;
+  --dimmer:  #767676;
+  --hair:    #dddddd;
+  --hair-mid:#bbbbbb;
+  --code-bg: #f9f9f9;
+  --accent:      #1f5c9e;
+  --accent-soft: #f2f6fb;
+  --accent-line: #cddef0;
+  --gold:        #966f1c;   /* deep enough to read as text on white — 5.1:1 */
+  --gold-dark:   #7a5a13;
+  --gold-line:   rgba(150,111,28,.45);
+  --gold-wash:   rgba(212,168,83,.12);
+}
+
+html[data-theme="dark"] {
+  --bg:      #14140f;
+  --text:    #e7e3d9;
+  --dim:     #a9a498;
+  --dimmer:  #85806f;
+  --hair:    #3a3931;
+  --hair-mid:#55534a;
+  --code-bg: #1c1c16;
+  --accent:      #8fb8e6;
+  --accent-soft: #1a1d24;
+  --accent-line: #2f4258;
+  --gold:        #d4a853;   /* the old site's gold, bright enough on dark */
+  --gold-dark:   #e6c179;
+  --gold-line:   rgba(212,168,83,.45);
+  --gold-wash:   rgba(212,168,83,.14);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  font-size: 19px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap, article.main, .backbar {
+  max-width: 45rem;
+  margin: 0 auto;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
+}
+article.main { padding-bottom: 4rem; }
+
+/* ── the one piece of chrome, parked in the corner so it never sits between
+   the reader and the first line of the post ── */
+.backbar {
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  max-width: none; margin: 0; padding: 0;
+}
+/* outline, not a slab: gold text inside a gold hairline, fill left open.
+   The blur keeps whatever scrolls underneath from muddying the label. */
+.backbtn {
+  display: inline-block;
+  background: transparent; color: var(--gold);
+  border: 1px solid var(--gold-line); border-bottom: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: .38rem 1rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .82rem; font-weight: 600; letter-spacing: .01em;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.backbtn:hover {
+  color: var(--gold-dark);
+  border-color: var(--gold);
+  background: var(--gold-wash);
+}
+.backbtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+@media (max-width: 560px) { .backbar { right: 12px; bottom: 12px; } }
+
+/* ── typography ── */
+h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; text-align: left; }
+h1 { font-size: 2.05rem; margin: 1.6rem 0 .6rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; margin: 2.6rem 0 .8rem; }
+h3 { font-size: 1.13rem; margin: 1.9rem 0 .5rem; }
+
+p { margin: 0 0 1.05rem; }
+ul, ol { margin: 0 0 1.05rem 1.4rem; }
+li { margin-bottom: .3rem; }
+
+/* the portfolio's link idiom: black text with a hairline under it */
+a { color: var(--text); text-decoration: none; padding-bottom: 1px; border-bottom: 1px solid; }
+a:hover { color: var(--dim); }
+
+hr { border: 0; border-top: 1px solid var(--hair); margin: 2.6rem 0; }
+
+code, kbd, samp {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: .85em; background: var(--code-bg); padding: .05em .3em; border-radius: 3px;
+}
+pre {
+  background: var(--code-bg); border: 1px solid var(--hair); border-radius: 4px;
+  padding: .9rem 1rem; overflow-x: auto; margin: 1.2rem 0;
+}
+pre code { background: none; padding: 0; font-size: .78rem; line-height: 1.6; white-space: pre; }
+pre.codeblock { font-size: .78rem; line-height: 1.6; }
+
+figure { margin: 1.6rem 0; text-align: center; }
+figure img { max-width: 100%; height: auto; border: 1px solid var(--hair); border-radius: 4px; }
+figcaption { font-size: .82rem; color: var(--dimmer); margin-top: .5rem; }
+
+.dim, .note { color: var(--dim); }
+.meta { font-size: .88rem; color: var(--dim); margin: 0 0 1rem; }
+
+/* ── post header ── */
+.breadcrumb { font-size: .82rem; color: var(--dimmer); margin: 0 0 .5rem; text-align: left; }
+.breadcrumb .sep { padding: 0 .3em; }
+.breadcrumb .current { color: var(--dim); }
+
+.ch-kicker { display: block; font-size: .85rem; color: var(--dimmer); margin: 0 0 .3rem; }
+.badge, .ch-meta { font-size: .85rem; color: var(--dimmer); }
+.badge::after { content: " ·"; }
+
+.ch-title, .chapter-title {
+  font-size: 2.05rem; font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.01em; margin: .2rem 0 .5rem; text-align: left;
+}
+.ch-sub { font-size: 1.05rem; color: var(--dim); margin: 0 0 1rem; }
+.ch-dek, .chapter-dek {
+  font-size: 1.02rem; color: var(--dim);
+  padding-bottom: 1.4rem; border-bottom: 1px solid var(--hair); margin-bottom: 1.8rem;
+}
+
+/* ── contents ── */
+.ch-body { display: block; }
+.ch-aside {
+  border: 1px solid var(--hair); border-left: 3px solid var(--accent-line);
+  border-radius: 6px; background: var(--accent-soft);
+  padding: .75rem 1rem .85rem; margin: 0 0 2.4rem;
+}
+.aside-label {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin: 0 0 .25rem;
+}
+.toc, .ch-series-nav { display: flex; flex-wrap: wrap; gap: 2px 0; flex-direction: row; }
+.toc-link, .series-item, .ch-series-item { font-size: .88rem; border-bottom: none; }
+.toc-link:hover, .series-item:hover, .ch-series-item:hover { color: var(--accent); border-bottom: 1px solid; }
+.toc-link::after, .series-item::after, .ch-series-item::after {
+  content: "·"; padding: 0 .55em; color: var(--dimmer);
+}
+.toc-link:last-child::after, .series-item:last-child::after,
+.ch-series-item:last-child::after { content: none; }
+.toc-link.is-active { font-weight: 700; color: var(--accent); }
+.series-item--active, .ch-series-label--active { font-weight: 700; color: var(--accent); }
+.series-item .dot, .ch-series-dot { display: none; }
+.aside-series { margin-top: .75rem; padding-top: .65rem; border-top: 1px solid var(--accent-line); }
+
+/* ── maths, then the code that implements it ──
+   Stacked rather than side by side: a real display equation needs the whole
+   column, and half of 45rem is not enough for one. */
+.math-figure, .math-code {
+  display: grid; grid-template-columns: 1fr;
+  border: 1px solid var(--hair); border-radius: 4px; margin: 1.6rem 0;
+}
+.math-figure__math, .math-code > div:first-child {
+  padding: .9rem 1.1rem 1rem; border-bottom: 1px solid var(--hair); min-width: 0;
+}
+.math-figure__code, .math-code > div:last-child {
+  padding: .9rem 1.1rem; background: var(--code-bg); min-width: 0;
+}
+.math-figure pre, .math-code pre {
+  border: none; background: none; padding: 0; margin: 0;
+  font-size: .74rem; line-height: 1.55; overflow-x: auto;
+}
+.math-figure p, .math-code p { font-size: .92rem; margin: 0 0 .5rem; }
+.pane-label, .math-code .label {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin: 0 0 .5rem;
+}
+.m-block { margin: .7rem 0 .9rem; overflow-x: auto; }
+
+/* display equations get the full column and scroll if they still overflow */
+.m-block { margin: .9rem 0 1rem; overflow-x: auto; overflow-y: hidden; }
+.math-code .m-block, .math-figure .m-block { margin: .8rem 0; }
+
+/* ── callouts ── */
+.callout {
+  border-left: 3px solid var(--hair-mid); padding: .1rem 0 .1rem 1rem;
+  margin: 1.4rem 0; font-size: .95rem; color: var(--dim);
+}
+.callout-label {
+  display: block;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text); margin-bottom: .15rem;
+}
+.callout--insight { border-left-color: var(--accent); }
+
+/* ── diagrams and results ── */
+.flow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .45rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .78rem; color: var(--dim);
+  border: 1px solid var(--hair); border-radius: 4px; padding: .7rem .8rem;
+}
+.flow-step { padding: .05rem .4rem; border: 1px solid var(--hair); border-radius: 3px; }
+.flow-step--active { color: var(--text); border-color: var(--hair-mid); }
+.flow-arrow { color: var(--dimmer); }
+
+.results-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--hair); border-right: none; border-bottom: none;
+  border-radius: 4px; overflow: hidden; margin: 1.6rem 0;
+}
+.result-card { border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); padding: .7rem .85rem; }
+.result-card .val { font-size: 1.15rem; }
+.result-card .desc { font-size: .8rem; color: var(--dim); line-height: 1.45; }
+@media (max-width: 620px) { .results-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── end of post ── */
+.next-link, .chapter-nav-btn { font-size: .95rem; }
+.ch-nav {
+  display: flex; justify-content: space-between; gap: 1.5rem;
+  margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--hair);
+}
+.series-complete {
+  border-left: 3px solid var(--hair-mid); padding: .2rem 0 .2rem 1rem; margin: 2rem 0;
+}
+.series-complete-label {
+  display: block;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dimmer); margin-bottom: .15rem;
+}
+.series-complete p { margin: 0; font-size: .95rem; color: var(--dim); }
+
+.ch-foot, .site-footer {
+  margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--hair);
+  font-size: .84rem; color: var(--dimmer); text-align: center;
+}
+
+/* ── index listing ── */
+.post-list { margin: 0 0 2rem; display: grid; gap: 10px; }
+
+.post-row {
+  display: block; padding: .7rem .95rem;
+  border: 1px solid var(--hair); border-left: 3px solid var(--accent-line);
+  border-radius: 6px; background: var(--bg);
+  transition: background .15s, border-color .15s, transform .15s;
+}
+a.post-row:hover {
+  background: var(--accent-soft);
+  border-color: var(--hair-mid); border-left-color: var(--accent);
+  transform: translateX(3px);
+}
+.post-row .when {
+  display: block;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--accent);
+}
+.post-row .what { display: block; font-size: 1.08rem; font-weight: 700; margin: .1rem 0 .15rem; }
+.post-row .why { display: block; font-size: .9rem; color: var(--dim); line-height: 1.5; }
+
+/* not written yet: flatter, greyer, and it does not invite a click */
+.post-row.planned {
+  border-style: dashed; border-left-color: var(--hair);
+  background: none; transform: none;
+}
+.post-row.planned .when { color: var(--dimmer); }
+.post-row.planned .what { color: var(--dim); font-weight: 400; }
+
+@media (prefers-reduced-motion: reduce) {
+  .post-row, .backbtn { transition: none; }
+  a.post-row:hover { transform: none; }
+}
+
+.katex { font-size: 1em; }
+.katex-display { margin: .6rem 0; overflow-x: auto; overflow-y: hidden; }
+
+.hidden { display: none; }
+
+@media (max-width: 480px) {
+  body { font-size: 17px; }
+  h1, .ch-title, .chapter-title { font-size: 1.7rem; }
+}

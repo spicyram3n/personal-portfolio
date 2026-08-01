@@ -1,48 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ch 03 – Pose Recovery &amp; Triangulation · casualSfM</title>
-  <script>(function(){var t=localStorage.getItem('ps-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{fontFamily:{serif:['IBM Plex Serif','Georgia','serif'],mono:['IBM Plex Mono','monospace'],sans:['Inter','sans-serif']}}}}</script>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/components.css">
-  <link rel="stylesheet" href="../../assets/css/animations.css">
-  <link rel="stylesheet" href="../../assets/css/terminal.css">
-  <link rel="stylesheet" href="../../assets/css/chapter.css">
-  <link rel="stylesheet" href="../../assets/css/blog-reading.css">
-  <style>
-    #progress-bar { top: 0; z-index: 200; }
-  </style>
+  <script>(function(){var t=localStorage.getItem('ps-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="../../assets/css/blog.css">
 </head>
-<body class="font-sans">
-  <div id="progress-bar"></div>
+<body>
 
-  <nav class="site-nav">
-    <div class="site-nav__inner">
-      <div class="site-nav__left">
-        <a href="../index.html" class="site-nav__wordmark">← Build Log</a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <i class="fa-solid fa-sun toggle-icon-sun"></i>
-          <div class="toggle-track"><div class="toggle-thumb"></div></div>
-          <i class="fa-solid fa-moon toggle-icon-moon"></i>
-        </button>
-      </div>
-      <nav class="site-nav__links">
-        <a href="../../index.html"    class="nav-link">Home</a>
-        <a href="../../projects.html"      class="nav-link">Projects</a>
-        <a href="../index.html"            class="nav-link nav-link--blog">Blog</a>
-        <a href="../../index.html#contact" class="nav-link">Contact</a>
-      </nav>
-    </div>
-  </nav>
+  <div class="backbar">
+    <a class="backbtn" href="../../index.html">&larr; Portfolio</a>
+  </div>
 
-  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24">
+  <article class="main">
 
     <div class="mb-8 fade-up">
       <div class="breadcrumb">
@@ -50,11 +23,11 @@
         <span>casualSfM</span><span class="sep">/</span>
         <span class="current">Ch 03</span>
       </div>
-      <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem;">
+      <div class="ch-kicker">
         <span class="badge badge--warm">Series 01 · Ch 03</span>
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);">April 2026 · ~12 min read</span>
+        <span class="ch-meta">April 2026 · ~12 min read</span>
       </div>
-      <h1 class="chapter-title" style="color:var(--text);">
+      <h1 class="chapter-title">
         Pose Recovery &amp; Triangulation<br>Essential Matrix to 3D Points
       </h1>
       <p class="chapter-dek">
@@ -65,8 +38,46 @@
       </p>
     </div>
 
-    <div style="display:flex; gap:2.5rem; align-items:flex-start;">
-      <article class="prose" style="flex:1; min-width:0;">
+    <div class="ch-body">
+      <aside class="ch-aside">
+        <p class="aside-label">On this page</p>
+        <nav class="toc">
+          <a href="#essential"          class="toc-link">F → Essential matrix</a>
+          <a href="#decompose"          class="toc-link">Decompose E → R, t</a>
+          <a href="#triangulation"      class="toc-link">DLT triangulation</a>
+          <a href="#cheirality-filter"  class="toc-link">Depth filter</a>
+          <a href="#camera-model"       class="toc-link">Camera model</a>
+          <a href="#pipeline"           class="toc-link">Full pipeline</a>
+          <a href="#color-sampling"     class="toc-link" style="padding-left:16px;">Colour sampling</a>
+          <a href="#scale-ambiguity"    class="toc-link">Scale ambiguity</a>
+          <a href="#pitfalls"           class="toc-link">Pitfalls</a>
+          <a href="#next"               class="toc-link">What's next</a>
+        </nav>
+
+        <div class="aside-series">
+          <p class="aside-label">Series</p>
+          <div class="ch-series-nav">
+            <a href="ch1.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 01 · Features</span>
+            </a>
+            <a href="ch2.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
+            </a>
+            <div class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label ch-series-label--active">Ch 03 · Triangulation</span>
+            </div>
+            <a href="ch4.html" class="ch-series-item">
+              <div class="ch-series-dot"></div>
+              <span class="ch-series-label">Ch 04 · Evaluation</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="ch-prose">
 
         <h2 id="essential">From F to the Essential Matrix</h2>
         <p>
@@ -76,20 +87,13 @@
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>Normalised coordinate:
-  x̃ = K⁻¹ · p   (p in homogeneous pixels)
-
-Epipolar constraint in calibrated coords:
-  x̃₂ᵀ E x̃₁ = 0
-
-Relationship between E and F:
-  E = Kᵀ F K
-
-E has the same 7 DOF as F, but its
-SVD has a special structure:
-  E = U diag(1, 1, 0) Vᵀ
-  (both non-zero singular values equal)</pre>
+            <p class="label">The math</p>
+            <p>Strip the intrinsics off the pixel coordinates:</p>
+            <div class="m-block">\tilde{\mathbf{x}} = K^{-1}\mathbf{p}</div>
+            <p>and the epipolar constraint becomes the calibrated one, which defines the essential matrix:</p>
+            <div class="m-block">\tilde{\mathbf{x}}_2^{\mathsf{T}}\, E\, \tilde{\mathbf{x}}_1 = 0, \qquad E = K^{\mathsf{T}} F K</div>
+            <p><span class="m">E</span> has the same 7 degrees of freedom as <span class="m">F</span>, but a special SVD structure — its two non-zero singular values are equal:</p>
+            <div class="m-block">E = U \operatorname{diag}(1, 1, 0)\, V^{\mathsf{T}}</div>
           </div>
           <div>
             <p class="label">Code: recover_pose()</p>
@@ -126,22 +130,12 @@ SVD has a special structure:
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math: four solutions from SVD(E)</p>
-            <pre>E = U Σ Vᵀ,  Σ = diag(σ, σ, 0)
-
-W = | 0 −1  0 |
-    | 1  0  0 |
-    | 0  0  1 |
-
-Four (R, t) candidates:
-  (U W  Vᵀ, +U[:,2])
-  (U W  Vᵀ, −U[:,2])
-  (U Wᵀ Vᵀ, +U[:,2])
-  (U Wᵀ Vᵀ, −U[:,2])
-
-Cheirality: for each candidate (R, t),
-  triangulate → keep the one where
-  X[:,2] > 0 in both camera frames.</pre>
+            <p class="label">The math</p>
+            <p>From the SVD of <span class="m">E</span>, with</p>
+            <div class="m-block">E = U\Sigma V^{\mathsf{T}}, \quad \Sigma = \operatorname{diag}(\sigma, \sigma, 0), \quad W = \begin{bmatrix} 0 & -1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}</div>
+            <p>four candidate poses fall out — two rotations, each with two translation signs:</p>
+            <div class="m-block">\bigl(UWV^{\mathsf{T}},\, \pm\mathbf{u}_3\bigr), \qquad \bigl(UW^{\mathsf{T}}V^{\mathsf{T}},\, \pm\mathbf{u}_3\bigr)</div>
+            <p>Only one puts the scene in front of both cameras. Triangulate with each and keep the candidate whose points have <span class="m">z > 0</span> in both frames.</p>
           </div>
           <div>
             <p class="label">Code</p>
@@ -163,31 +157,21 @@ _, R, t, mask = cv.recoverPose(E, pts1, pts2, K)
 
         <h2 id="triangulation">Triangulation: DLT Method</h2>
         <p>
-          With R and t we know both camera positions. For each inlier match (p₁, p₂) we compute
-          the 3D point X that best explains both observations using the
+          With <span class="m">R</span> and <span class="m">\mathbf{t}</span> we know both camera positions. For each inlier match <span class="m">(\mathbf{p}_1, \mathbf{p}_2)</span> we compute
+          the 3D point <span class="m">\mathbf{X}</span> that best explains both observations using the
           <strong>Direct Linear Transform</strong> (DLT).
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math: projection model</p>
-            <pre>Camera 1 at world origin:
-  P₁ = K [I | 0]
-
-Camera 2 at (R, t):
-  P₂ = K [R | t]
-
-For a 3D point X (homogeneous 4-vector):
-  λ₁ p₁ = P₁ X
-  λ₂ p₂ = P₂ X
-
-Cross-multiplying to eliminate λ:
-  p₁ × (P₁ X) = 0  →  two rows of A
-  p₂ × (P₂ X) = 0  →  two rows of A
-
-AX = 0  →  solved by SVD (X = last row Vᵀ)
-
-Convert homogeneous → Euclidean:
-  X_eucl = X_h[:3] / X_h[3]</pre>
+            <p class="label">The math</p>
+            <p>Put camera 1 at the world origin and camera 2 at the recovered pose:</p>
+            <div class="m-block">P_1 = K\begin{bmatrix} I & \mathbf{0}\end{bmatrix}, \qquad P_2 = K\begin{bmatrix} R & \mathbf{t}\end{bmatrix}</div>
+            <p>A 3D point <span class="m">\mathbf{X}</span> projects into both images up to an unknown depth:</p>
+            <div class="m-block">\lambda_1 \mathbf{p}_1 = P_1 \mathbf{X}, \qquad \lambda_2 \mathbf{p}_2 = P_2 \mathbf{X}</div>
+            <p>Cross-multiplying kills <span class="m">\lambda</span> and leaves two usable rows per view:</p>
+            <div class="m-block">\mathbf{p}_1 \times (P_1 \mathbf{X}) = \mathbf{0}, \qquad \mathbf{p}_2 \times (P_2 \mathbf{X}) = \mathbf{0}</div>
+            <p>Stack them into <span class="m">A\mathbf{X} = \mathbf{0}</span>, solve by SVD, and dehomogenise:</p>
+            <div class="m-block">\mathbf{X}_{\text{eucl}} = \frac{1}{X_4}\begin{bmatrix} X_1 & X_2 & X_3\end{bmatrix}^{\mathsf{T}}</div>
           </div>
           <div>
             <p class="label">Code: triangulation in recover_pose()</p>
@@ -216,19 +200,10 @@ X = (X_h[:3] / X_h[3]).T
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>Camera 1 is at world origin.
-World z-axis = optical axis of camera 1.
-
-Cheirality condition:
-  X[2] > 0   (point is in front)
-
-Also check in camera 2's frame:
-  (R X + t)[2] > 0
-
-cv.recoverPose enforces both.
-Our additional filter enforces:
-  X[:, 2] > 0  (world frame)</pre>
+            <p class="label">The math</p>
+            <p>Camera 1 sits at the world origin, so the world <span class="m">z</span>-axis is its optical axis. A point is only real if it lies in front of both cameras:</p>
+            <div class="m-block">\mathbf{X}_z > 0 \qquad \text{and} \qquad (R\mathbf{X} + \mathbf{t})_z > 0</div>
+            <p><code>cv.recoverPose</code> enforces both; the extra filter here re-checks <span class="m">\mathbf{X}_z > 0</span> in the world frame.</p>
           </div>
           <div>
             <p class="label">Code: pipeline.py run()</p>
@@ -256,19 +231,13 @@ pts2_in = pts2_in[ok]
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math: perspective projection</p>
-            <pre>Given world point X (3D):
-  X_cam = R X + t       (world → camera)
-
-Project via pinhole model:
-  u = fx · (X_cam[0] / X_cam[2]) + cx
-  v = fy · (X_cam[1] / X_cam[2]) + cy
-
-Or compactly:
-  λ p = K [R | t] X_world
-
-Rodrigues:  R → rvec (axis-angle, 3-vector)
-  used by cv.projectPoints internally.</pre>
+            <p class="label">The math</p>
+            <p>Take the point into the camera frame, then through the pinhole model:</p>
+            <div class="m-block">\mathbf{X}_{\text{cam}} = R\mathbf{X} + \mathbf{t}</div>
+            <div class="m-block">u = f_x\,\frac{X_{\text{cam},1}}{X_{\text{cam},3}} + c_x, \qquad v = f_y\,\frac{X_{\text{cam},2}}{X_{\text{cam},3}} + c_y</div>
+            <p>or compactly, up to scale:</p>
+            <div class="m-block">\lambda\, \mathbf{p} = K\begin{bmatrix} R & \mathbf{t}\end{bmatrix} \mathbf{X}_{\text{world}}</div>
+            <p>Internally <code>cv.projectPoints</code> wants the rotation as an axis-angle 3-vector, via Rodrigues.</p>
           </div>
           <div>
             <p class="label">Code: Camera.project()</p>
@@ -332,15 +301,10 @@ def run(self, img1_path, img2_path) -> Reconstruction:
         </p>
         <div class="math-code">
           <div>
-            <p class="label">Math</p>
-            <pre>For each inlier point with image-2
-observation (u, v):
-
-  color = I₂[round(v), round(u)] / 255
-
-  (clamp u to [0, W−1], v to [0, H−1])
-
-Result: N×3 float32 array in [0, 1]</pre>
+            <p class="label">The math</p>
+            <p>Colour each point by sampling image 2 at its observation <span class="m">(u, v)</span>:</p>
+            <div class="m-block">\mathbf{c} = \tfrac{1}{255}\, I_2\bigl[\operatorname{round}(v),\, \operatorname{round}(u)\bigr]</div>
+            <p>with <span class="m">u</span> clamped to <span class="m">[0, W-1]</span> and <span class="m">v</span> to <span class="m">[0, H-1]</span>. The result is an <span class="m">N \times 3</span> float array in <span class="m">[0, 1]</span>.</p>
           </div>
           <div>
             <p class="label">Code</p>
@@ -396,66 +360,22 @@ colors = img[ys, xs].astype(np.float32) / 255.0
           distribution, and a 3D visualisation with Rerun.
         </p>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+        <div class="ch-nav">
           <a href="ch2.html" class="chapter-nav-btn">
-            <i class="fa-solid fa-arrow-left" style="font-size:9px;"></i>
-            Ch 02: Fundamental Matrix
+            ← Ch 02: Fundamental Matrix
           </a>
           <a href="ch4.html" class="chapter-nav-btn">
-            Ch 04: Evaluation &amp; Visualisation
-            <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+            Ch 04: Evaluation &amp; Visualisation →
           </a>
         </div>
 
-      </article>
-
-      <!-- Sidebar TOC -->
-      <aside style="width:148px; flex-shrink:0;" class="hidden lg:block sticky top-24 self-start">
-        <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">On this page</p>
-        <nav style="display:flex; flex-direction:column; gap:1px;">
-          <a href="#essential"          class="toc-link">F → Essential matrix</a>
-          <a href="#decompose"          class="toc-link">Decompose E → R, t</a>
-          <a href="#triangulation"      class="toc-link">DLT triangulation</a>
-          <a href="#cheirality-filter"  class="toc-link">Depth filter</a>
-          <a href="#camera-model"       class="toc-link">Camera model</a>
-          <a href="#pipeline"           class="toc-link">Full pipeline</a>
-          <a href="#color-sampling"     class="toc-link" style="padding-left:16px; font-size:9.5px;">Colour sampling</a>
-          <a href="#scale-ambiguity"    class="toc-link">Scale ambiguity</a>
-          <a href="#pitfalls"           class="toc-link">Pitfalls</a>
-          <a href="#next"               class="toc-link">What's next</a>
-        </nav>
-
-        <div style="margin-top:2rem; padding-top:1.25rem; border-top:1px solid var(--border);">
-          <p style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin-bottom:.65rem;">Series</p>
-          <div class="ch-series-nav">
-            <a href="ch1.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 01 · Features</span>
-            </a>
-            <a href="ch2.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 02 · Fund. Matrix</span>
-            </a>
-            <div class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label ch-series-label--active">Ch 03 · Triangulation</span>
-            </div>
-            <a href="ch4.html" class="ch-series-item">
-              <div class="ch-series-dot"></div>
-              <span class="ch-series-label">Ch 04 · Evaluation</span>
-            </a>
-          </div>
-        </div>
-      </aside>
+      </div>
     </div>
 
     <footer class="site-footer">
       © 2026 Poorna Sasank Sesetti · <a href="../index.html">Back to Build Log</a>
     </footer>
-  </main>
-
-  <script src="../../assets/js/theme.js"></script>
-  <script src="../../assets/js/scroll.js"></script>
+  </article>
   <script>
     (function () {
       var links    = document.querySelectorAll('.toc-link');
@@ -484,6 +404,24 @@ colors = img[ys, xs].astype(np.float32) / 255.0
       }, { passive:true });
       updateRegistered();
     })();
+  </script>
+  <script>
+    /* render every \(.m\) inline and \(.m-block\) display equation with KaTeX */
+    function renderMath(){
+      if (!window.katex) return;
+      document.querySelectorAll('.m-block').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:true, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+      document.querySelectorAll('.m').forEach(function(el){
+        if (el.dataset.done) return;
+        try { katex.render(el.textContent.trim(), el, { displayMode:false, throwOnError:false }); el.dataset.done=1; }
+        catch(e){}
+      });
+    }
+    if (document.readyState === 'complete') renderMath();
+    window.addEventListener('load', renderMath);
   </script>
 </body>
 </html>
